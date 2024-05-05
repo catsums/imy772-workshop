@@ -1,4 +1,6 @@
 
+# Functional Requirements
+
 | Category              | Functional Requirements                                                                                                       |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Input processing      | Limit input at 3 characters by preventing inputs from crossing beyond 3 characters                                            |
