@@ -14,7 +14,7 @@ describe("Test Processing inputs into valid inputs", () => {
 			"09" : "9",
 			"10" : "10",
 			"0A0" : "A0",
-			"" : "0",
+			"" : "",
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
@@ -44,7 +44,7 @@ describe("Test Processing inputs into valid inputs", () => {
 		let tests = {
 			"34.23" : "34",
 			"AB.1" : "AB",
-			".9000" : "0",
+			".9000" : "",
 			"1.0" : "1",
 			"1234.5678" : "123",
 		}
