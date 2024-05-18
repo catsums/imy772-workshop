@@ -1,5 +1,5 @@
 import { Operator, Operators } from "./operators";
-import { DECtoHEX, HEX_CHARS, HEXtoDEC } from "./processing";
+import { DECtoHEX, HEX_CHARS, HEXtoDEC, parseInput } from "./processing";
 
 const opTokens = "+-*/";
 function isOperatorToken(token: string) {
@@ -44,6 +44,8 @@ export function addToken(token:string, store:string[]){
 			}
 			//append input
 			store[curr()] += token;
+			store[curr()] = parseInput(store[curr()]);
+			
 		}
 	}
 
@@ -51,40 +53,57 @@ export function addToken(token:string, store:string[]){
 }
 
 export function processStore(store:string[]){
-	let ans = 0; let hasAns = false;
+	let init = store.map((t)=>{
+		if(!isOperatorToken(t)){
+			return Number(HEXtoDEC(t))
+		}
+		return t;
+	});
+	
+	// Multiplication and Division first
+	// Then Addition and Subtraction
 
-	for(let i=0; i<store.length; i++){
-		let prev = store[i-1] || null;
-		let curr = store[i] || null;
-		let next = store[i+1] || null;
+	let passes = [["*","/"], ["+","-"]];
 
-		if(isOperatorToken(curr)){
-			let a, b;
-			if(hasAns){
-				a = ans;
-			}else{
-				a = HEXtoDEC(prev);
+	for(let ops of passes){
+		for(let i=0; i<init.length; i++){
+			let prev = init[i-1] || null;
+			let curr = init[i] || null;
+			let next = init[i+1] || null;
+	
+			if(isOperatorToken(curr.toString()) && ops.includes(curr.toString())){
+				let a, b;
+	
+				a = prev as number;
+				b = next as number;
+	
+				let op:Operator;
+
+				switch(curr){
+					case "+": op = Operators.Add; break;
+					case "-": op = Operators.Subtract; break;
+					case "*": op = Operators.Multiply; break;
+					case "/": op = Operators.Divide; break;
+				}
+
+				
+				if(op){
+					let ans = calculate(a,b,op);
+					console.log({a,b,op, i, ans});
+
+					init.splice(i-1, 3, ans);
+					i -= 2;
+					
+				}
+				console.log({init, i});
 			}
-			
-			b = HEXtoDEC(next);
 
-			let op:Operator;
-
-			switch(curr){
-				case "+": op = Operators.Add; break;
-				case "-": op = Operators.Subtract; break;
-				case "*": op = Operators.Multiply; break;
-				case "/": op = Operators.Divide; break;
-			}
-
-			if(op){
-				ans = calculate(a,b,op);
-				hasAns = true;
-			}
+	
 		}
 	}
 
-	return DECtoHEX(ans);
+
+	return DECtoHEX(init[0]);
 
 }
 
