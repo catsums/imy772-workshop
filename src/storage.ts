@@ -10,6 +10,8 @@ export function addTokens(stream:string, store:string[]){
 	for(let token of stream){
 		addToken(token, store);
 	}
+
+	return store;
 }
 
 export function addToken(token:string, store:string[]){
@@ -44,6 +46,8 @@ export function addToken(token:string, store:string[]){
 			store[curr()] += token;
 		}
 	}
+
+	return store;
 }
 
 export function processStore(store:string[]){
