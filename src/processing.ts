@@ -16,8 +16,7 @@ export function parseInput(input: string): string {
 		//temporarily add negative sign
 		if(!parsed.length && char === '-'){
 			parsed += char;
-		}
-		if(HEX_CHARS.includes(char.toUpperCase())){
+		}else if(HEX_CHARS.includes(char.toUpperCase())){
 			parsed += char.toUpperCase();
 		}
 		//if theres decimal point, stop at integral part
@@ -64,8 +63,7 @@ export function parseOutput(output: string){
 		//temporarily allow negative
 		if(!parsed.length && char === '-'){
 			parsed += char;
-		}
-		if(HEX_CHARS.includes(char.toUpperCase())){
+		}else if(HEX_CHARS.includes(char.toUpperCase())){
 			parsed += char.toUpperCase();
 		}else{
 			throw new InvalidHexCalcError(`${output} is invalid and can't be processed`, output);
