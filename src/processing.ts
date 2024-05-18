@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { InfinityCalcError, InvalidDecCalcError, InvalidHexCalcError, NegativeValueCalcError } from './calc_errors';
+import { InfinityCalcError, InvalidDecCalcError, InvalidHexCalcError, NegativeValueCalcError, UndefinedCalcError } from './calc_errors';
 
 export const HEX_CHARS = "0123456789ABCDEF";
 
@@ -13,6 +13,10 @@ export function parseInput(input: string): string {
 
 	//filter out invalid characters
 	for(let char of input){
+		//temporarily add negative sign
+		if(!parsed.length && char === '-'){
+			parsed += char;
+		}
 		if(HEX_CHARS.includes(char.toUpperCase())){
 			parsed += char.toUpperCase();
 		}
@@ -20,6 +24,11 @@ export function parseInput(input: string): string {
 		if(char === '.'){
 			break;
 		}
+	}
+
+	//reject negative
+	if(parsed[0] === '-'){
+		throw new NegativeValueCalcError(`${input} cannot be processed because it is negative`, parsed);
 	}
 
 	//remove starting zeroes
@@ -52,9 +61,20 @@ export function parseOutput(output: string){
 
 	//filter out invalid characters
 	for(let char of output){
+		//temporarily allow negative
+		if(!parsed.length && char === '-'){
+			parsed += char;
+		}
 		if(HEX_CHARS.includes(char.toUpperCase())){
 			parsed += char.toUpperCase();
+		}else{
+			throw new InvalidHexCalcError(`${output} is invalid and can't be processed`, output);
 		}
+	}
+
+	//reject negative
+	if(parsed[0] === '-'){
+		throw new NegativeValueCalcError(`${output} cannot be processed because it is negative`, parsed);
 	}
 
 	//limit number of output characters (right to left)
@@ -121,13 +141,17 @@ export function HEXtoDEC(hexString: string): string {
 }
 
 export function DECtoHEX(decValue:(string|number)) : string{
+	//throw error if DEC value has invalid digits
+	if((_.isNumber(decValue) && isNaN(decValue)) || decValue.toString() === "NaN"){
+		throw new UndefinedCalcError(`${decValue} is undefined`, decValue as number);
+	}
 
 	if(decValue.toString().length <= 0){
 		decValue += "0";
 	}
 
-	let initValue = new Number(decValue.toString()) as number;
 	//throw if infinity
+	let initValue = new Number(decValue.toString()) as number;
 	if(initValue == Infinity || initValue == -Infinity){
 		throw new InfinityCalcError(`${initValue} is literally equivalent to infinity`, initValue);
 	}
@@ -136,7 +160,7 @@ export function DECtoHEX(decValue:(string|number)) : string{
 		throw new InvalidDecCalcError(`${decValue} is not a valid DEC value`, decValue.toString());
 	}
 	//throw error if DEC value is negative
-	if(initValue < 0){
+	if(initValue < 0 || (decValue.toString())[0] == '-'){
 		throw new NegativeValueCalcError(`${initValue} is negative and can't be processed`, initValue);
 	}
 
