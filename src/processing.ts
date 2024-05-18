@@ -43,6 +43,13 @@ export function parseInput(input: string): string {
 export function parseOutput(output: string){
 	let parsed = "";
 
+	if(output == "Infinity"){
+		throw new InfinityCalcError(`${output} can't be processed.`, Number(output));
+	}
+	if(output == "NaN"){
+		throw new UndefinedCalcError(`${output} can't be processed because it is undefined.`, Number(output));
+	}
+
 	//filter out invalid characters
 	for(let char of output){
 		if(HEX_CHARS.includes(char.toUpperCase())){

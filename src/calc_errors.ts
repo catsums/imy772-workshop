@@ -38,7 +38,7 @@ export class InfinityCalcError extends CalcError {
 
 export class UndefinedCalcError extends CalcError {
 
-	constructor(message:string, value:typeof Infinity){
+	constructor(message:string, value:typeof NaN){
 		super(message, value);
 	}
 	
