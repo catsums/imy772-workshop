@@ -11,15 +11,15 @@ class Operator {
 		this._name = name;
 		this._token = token;
 	}
-	calculate(...args:any) : any{
+	calculate(...args:number[]) : any{
 		return null;
 	}
-	hexCalculate(...args:any) : any{
+	hexCalculate(...args:string[]) : any{
 		let hexArgs = (args as []).map( 
-			(arg) => ( Number( DECtoHEX(arg) ) ) 
+			(arg) => ( Number( HEXtoDEC(arg) ) ) 
 		);
 
-		return HEXtoDEC( this.calculate(...hexArgs) );
+		return DECtoHEX( this.calculate(...hexArgs) );
 	}
 }
 
@@ -36,7 +36,7 @@ class AddOp extends Operator {
 		super("Add", "+");
 	}
 
-	calculate(...args: any) {
+	override calculate(...args: number[]) {
 		return args[0] + args[1];
 	}
 }
@@ -53,7 +53,7 @@ class SubtractOp extends Operator {
 		super("Subtract", "-");
 	}
 
-	calculate(...args: any) {
+	override calculate(...args: number[]) {
 		return args[0] - args[1];
 	}
 }
@@ -70,7 +70,7 @@ class MultiplyOp extends Operator {
 		super("Multiply", "×");
 	}
 
-	calculate(...args: any) {
+	override calculate(...args: number[]) {
 		return args[0] * args[1];
 	}
 }
@@ -87,7 +87,7 @@ class DivideOp extends Operator {
 		super("Divide", "÷");
 	}
 
-	calculate(...args: any) {
+	override calculate(...args: number[]) {
 		return args[0] / args[1];
 	}
 }
