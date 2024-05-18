@@ -229,7 +229,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 			[Infinity] : InfinityCalcError,
 			"gill" : InvalidDecCalcError,
 			"invalidHere" : InvalidDecCalcError,
-			[NaN] : InfinityCalcError,
+			[NaN] : UndefinedCalcError,
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
