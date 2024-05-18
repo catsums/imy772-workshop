@@ -3,11 +3,6 @@ import {describe, test, expect, jest} from "@jest/globals";
 
 import { HEXtoDEC, DECtoHEX, parseInput, parseOutput } from "./processing";
 
-let mockParseInput = jest.fn(x => x);
-let mockParseOutput = jest.fn(x => x);
-let mockHexToDec = jest.fn(x => x);
-let mockDecToHex = jest.fn(x => x);
-
 describe("Test Processing inputs into valid inputs", () => {
 
 	test("Test valid inputs", () => {
@@ -23,7 +18,7 @@ describe("Test Processing inputs into valid inputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			let actual = mockParseInput(k);
+			let actual = parseInput(k);
 
 			expect(actual).toBe(v);
 		}
@@ -39,7 +34,7 @@ describe("Test Processing inputs into valid inputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			let actual = mockParseInput(k);
+			let actual = parseInput(k);
 
 			expect(actual).toBe(v);
 		}
@@ -55,7 +50,7 @@ describe("Test Processing inputs into valid inputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			let actual = mockParseInput(k);
+			let actual = parseInput(k);
 
 			expect(actual).toBe(v);
 		}
@@ -72,7 +67,7 @@ describe("Test Processing inputs into valid inputs", () => {
 
 		for(let [k,v] of Object.entries(tests)) {
 			try{
-				let actual = mockParseInput(k);
+				let actual = parseInput(k);
 	
 				expect(actual).toBe(v);
 			}catch(err){
@@ -94,7 +89,7 @@ describe("Test Processing inputs into valid inputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			let actual = mockParseInput(k);
+			let actual = parseInput(k);
 
 			expect(actual).toBe(v);
 		}
@@ -112,7 +107,7 @@ describe("Test Processing inputs into valid inputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			let actual = mockParseInput(k);
+			let actual = parseInput(k);
 
 			expect(actual).toBe(v);
 		}
@@ -130,7 +125,7 @@ describe("Test Processing inputs into valid inputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			let actual = mockHexToDec(k);
+			let actual = HEXtoDEC(k);
 
 			expect(actual).toBe(v);
 		}
@@ -158,7 +153,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			let actual = mockParseOutput(k);
+			let actual = parseOutput(k);
 
 			expect(actual).toBe(v);
 		}
@@ -175,7 +170,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			let actual = mockParseOutput(k);
+			let actual = parseOutput(k);
 
 			expect(actual).toBe(v);
 		}
@@ -197,7 +192,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			let actual = mockDecToHex(k);
+			let actual = DECtoHEX(k);
 
 			expect(actual).toBe(v);
 		}
@@ -217,7 +212,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 
 		for(let [k,v] of Object.entries(tests)) {
 			try{
-				let actual = mockDecToHex(k);
+				let actual = DECtoHEX(k);
 	
 				expect(actual).toBe(v);
 			}catch(err){
@@ -245,7 +240,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 
 		for(let [k,v] of Object.entries(tests)) {
 			try{
-				let actual = mockParseOutput(k);
+				let actual = parseOutput(k);
 	
 				expect(actual).toBe(v);
 			}catch(err){
