@@ -52,6 +52,22 @@ export function parseOutput(output: string){
 
 	//limit number of output characters (right to left)
 	parsed = parsed.substring(parsed.length - outputLimit);
+	
+	//remove starting zeroes
+	for(let i=0; i<parsed.length; i++){
+		if(parsed[i] !== '0'){
+			parsed = parsed.substring(i);
+			break;
+		}
+		if(i == parsed.length-1){
+			parsed = "0";
+			break;
+		}
+	}
+	
+	if(parsed.length <= 0){
+		parsed = "0";
+	}
 
 	return parsed;
 
