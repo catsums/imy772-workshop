@@ -1,6 +1,8 @@
 
 import {describe, test, expect, jest} from "@jest/globals";
 
+import { HEXtoDEC, DECtoHEX, parseInput, parseOutput } from "./processing";
+
 let mockParseInput = jest.fn(x => x);
 let mockParseOutput = jest.fn(x => x);
 let mockHexToDec = jest.fn(x => x);
