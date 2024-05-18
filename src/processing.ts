@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { InvalidHexCalcError, NegativeValueCalcError } from './calc_errors';
+import { InfinityCalcError, InvalidDecCalcError, InvalidHexCalcError, NegativeValueCalcError } from './calc_errors';
 
 export const HEX_CHARS = "0123456789ABCDEF";
 
@@ -43,6 +43,10 @@ export function parseOutput(output: string){
 
 export function HEXtoDEC(hexString: string): string {
 	let sum = 0;
+
+	if(hexString.length <= 0){
+		hexString += "0";
+	}
 	
 	//use uppercase
 	hexString = hexString.toUpperCase();
@@ -75,4 +79,46 @@ export function HEXtoDEC(hexString: string): string {
 
 	return sum.toString();
 
+}
+
+export function DECtoHEX(decValue:(string|number)) : string{
+
+	if(decValue.toString().length <= 0){
+		decValue += "0";
+	}
+
+	let initValue = new Number(decValue.toString()) as number;
+	//throw if infinity
+	if(initValue == Infinity || initValue == -Infinity){
+		throw new InfinityCalcError(`${initValue} is literally equivalent to infinity`, initValue);
+	}
+	//throw error if DEC value has invalid digits
+	if(isNaN(initValue)){
+		throw new InvalidDecCalcError(`${decValue} is not a valid DEC value`, decValue.toString());
+	}
+	//throw error if DEC value is negative
+	if(initValue < 0){
+		throw new NegativeValueCalcError(`${initValue} is negative and can't be processed`, initValue);
+	}
+
+	//remove decimal
+	initValue = Math.round(initValue);
+
+	let hexString = "";
+
+	//stop when init value is less than 1 (only fraction)
+	while(initValue >= 1){
+		let quot = initValue / hexBase;
+		let remainder = initValue % hexBase;
+
+		hexString = HEX_CHARS[remainder] + hexString;
+		initValue = Math.trunc(quot);
+	}
+
+	//return 0 if string is empty
+	if(hexString.length <= 0){
+		hexString += "0";
+	}
+
+	return hexString;
 }
