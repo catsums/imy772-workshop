@@ -1,4 +1,4 @@
-import { DECtoHEX } from "./processing";
+import { DECtoHEX, HEXtoDEC } from './processing';
 
 class Operator {
 	private _name:string;
@@ -15,9 +15,11 @@ class Operator {
 		return null;
 	}
 	hexCalculate(...args:any) : any{
-		let hexArgs = (args as []).map( (arg) => ( Number(DECtoHEX(arg)) ) );
+		let hexArgs = (args as []).map( 
+			(arg) => ( Number( DECtoHEX(arg) ) ) 
+		);
 
-		return this.calculate(...hexArgs);
+		return HEXtoDEC( this.calculate(...hexArgs) );
 	}
 }
 
