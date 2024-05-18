@@ -1,6 +1,6 @@
 import { DECtoHEX, HEXtoDEC } from './processing';
 
-class Operator {
+export class Operator {
 	private _name:string;
 	private _token:string;
 
@@ -11,10 +11,12 @@ class Operator {
 		this._name = name;
 		this._token = token;
 	}
-	calculate(...args:number[]) : any{
+	//return decimal calculation
+	calculate(...args:number[]) : number{
 		return null;
 	}
-	hexCalculate(...args:string[]) : any{
+	//return hexadecimal calculation
+	hexCalculate(...args:string[]) : string{
 		let hexArgs = (args as []).map( 
 			(arg) => ( Number( HEXtoDEC(arg) ) ) 
 		);
