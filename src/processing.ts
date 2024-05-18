@@ -141,8 +141,6 @@ export function HEXtoDEC(hexString: string): string {
 }
 
 export function DECtoHEX(decValue:(string|number)) : string{
-	//throw error if DEC value has invalid digits
-	if((_.isNumber(decValue) && isNaN(decValue)) || decValue.toString() === "NaN"){
 	//throw error if DEC value is NaN
 	if((_.isNaN(decValue) || decValue.toString() === "NaN")){
 		throw new UndefinedCalcError(`${decValue} is undefined`, decValue as number);
