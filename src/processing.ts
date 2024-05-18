@@ -14,7 +14,23 @@ export function parseInput(input: string): string {
 	//filter out invalid characters
 	for(let char of input){
 		if(HEX_CHARS.includes(char.toUpperCase())){
-			parsed += char;
+			parsed += char.toUpperCase();
+		}
+		//if theres decimal point, stop at integral part
+		if(char === '.'){
+			break;
+		}
+	}
+
+	//remove starting zeroes
+	for(let i=0; i<parsed.length; i++){
+		if(parsed[i] !== '0'){
+			parsed = parsed.substring(i);
+			break;
+		}
+		if(i == parsed.length-1){
+			parsed = "0";
+			break;
 		}
 	}
 
@@ -30,7 +46,7 @@ export function parseOutput(output: string){
 	//filter out invalid characters
 	for(let char of output){
 		if(HEX_CHARS.includes(char.toUpperCase())){
-			parsed += char;
+			parsed += char.toUpperCase();
 		}
 	}
 
@@ -111,7 +127,7 @@ export function DECtoHEX(decValue:(string|number)) : string{
 		let quot = initValue / hexBase;
 		let remainder = initValue % hexBase;
 
-		hexString = HEX_CHARS[remainder] + hexString;
+		hexString = HEX_CHARS[remainder].toUpperCase() + hexString;
 		initValue = Math.trunc(quot);
 	}
 
