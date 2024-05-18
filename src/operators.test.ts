@@ -43,7 +43,7 @@ describe("Test for Operators", () => {
 		}
 	});
 
-	test("Test Subtraction", () => {
+	describe("Test Subtraction", () => {
 		let tests = [
 			["3","1", "2"],
 			["F","4", "B"],
@@ -78,7 +78,7 @@ describe("Test for Operators", () => {
 		}
 	});
 
-	test("Test Multiplication", () => {
+	describe("Test Multiplication", () => {
 		let tests = [
 			["3","1", "3"],
 			["F","5", "4B"],
@@ -114,7 +114,7 @@ describe("Test for Operators", () => {
 		}
 	});
 
-	test("Test Division", () => {
+	describe("Test Division", () => {
 		let tests = [
 			["3","1", "3"],
 			["4B","F", "5"],
