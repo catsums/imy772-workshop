@@ -9,7 +9,7 @@ const {
 } = Operators;
 
 describe("Test for Operators", () => {
-	test("Test Addition", () => {
+	describe("Test Addition", () => {
 		let tests = [
 			["1","2", "3"],
 			["B","4", "F"],
@@ -27,17 +27,19 @@ describe("Test for Operators", () => {
 		];
 
 		for(let [a, b, ans] of tests){
-			try{
-				let actual = Add.hexCalculate(a,b);
+			test(`Test Add(${a},${b})`, () => {
+				try{
+					let actual = Add.hexCalculate(a,b);
 
-				expect(actual).toBe(ans);
-			}catch(err){
-				if(err instanceof CalcError){
-					expect(err).toBeInstanceOf(ans);
-				}else{
-					throw err;
+					expect(actual).toBe(ans);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(ans);
+					}else{
+						throw err;
+					}
 				}
-			}
+			});
 		}
 	});
 
@@ -60,17 +62,19 @@ describe("Test for Operators", () => {
 		];
 
 		for(let [a, b, ans] of tests){
-			try{
-				let actual = Subtract.hexCalculate(a,b);
+			test(`Test Subtract(${a},${b})`, () => {
+				try{
+					let actual = Subtract.hexCalculate(a,b);
 
-				expect(actual).toBe(ans);
-			}catch(err){
-				if(err instanceof CalcError){
-					expect(err).toBeInstanceOf(ans);
-				}else{
-					throw err;
+					expect(actual).toBe(ans);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(ans);
+					}else{
+						throw err;
+					}
 				}
-			}
+			});
 		}
 	});
 
@@ -94,17 +98,19 @@ describe("Test for Operators", () => {
 		];
 
 		for(let [a, b, ans] of tests){
-			try{
-				let actual = Multiply.hexCalculate(a,b);
+			test(`Test Multiply(${a},${b})`, () => {
+				try{
+					let actual = Multiply.hexCalculate(a,b);
 
-				expect(actual).toBe(ans);
-			}catch(err){
-				if(err instanceof CalcError){
-					expect(err).toBeInstanceOf(ans);
-				}else{
-					throw err;
+					expect(actual).toBe(ans);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(ans);
+					}else{
+						throw err;
+					}
 				}
-			}
+		});
 		}
 	});
 
@@ -131,17 +137,19 @@ describe("Test for Operators", () => {
 		];
 
 		for(let [a, b, ans] of tests){
-			try{
-				let actual = Divide.hexCalculate(a,b);
+			test(`Test Divide(${a},${b})`, () => {
+				try{
+					let actual = Divide.hexCalculate(a,b);
 
-				expect(actual).toBe(ans);
-			}catch(err){
-				if(err instanceof CalcError){
-					expect(err).toBeInstanceOf(ans);
-				}else{
-					throw err;
+					expect(actual).toBe(ans);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(ans);
+					}else{
+						throw err;
+					}
 				}
-			}
+			});
 		}
 	});
 });
