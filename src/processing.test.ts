@@ -233,7 +233,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			test(`Test parseOutput(${k})`, () => {
+			test(`Test DECtoHEX(${k})`, () => {
 				try{
 					let actual = DECtoHEX(k);
 		
