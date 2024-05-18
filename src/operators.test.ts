@@ -2,6 +2,7 @@
 import {describe, test, expect, jest} from "@jest/globals";
 
 import { Operators } from "./operators";
+import { CalcError, InfinityCalcError, InvalidDecCalcError, InvalidHexCalcError, NegativeValueCalcError, UndefinedCalcError } from "./calc_errors";
 
 const {
 	Add, Subtract, Multiply, Divide,
@@ -18,7 +19,7 @@ describe("Test for Operators", () => {
 			["70","020", "90"],
 			["0","01", "1"],
 			["","3", "3"],
-			["y","p", Error],
+			["y","p", InvalidHexCalcError],
 			["abc","abc", "1578"],
 			["000001","00000002", "3"],
 			["B","000C02", "C0D"],
@@ -31,7 +32,7 @@ describe("Test for Operators", () => {
 
 				expect(actual).toBe(ans);
 			}catch(err){
-				if(err instanceof Error){
+				if(err instanceof CalcError){
 					expect(err).toBeInstanceOf(ans);
 				}else{
 					throw err;
@@ -47,11 +48,11 @@ describe("Test for Operators", () => {
 			["EB","c8", "23"],
 			["21","20", "1"],
 			["0","0", "0"],
-			["0","1", Error],
+			["0","1", NegativeValueCalcError],
 			["090","20", "70"],
 			["01","0000", "1"],
-			["","3", Error],
-			["y","p", Error],
+			["","3", NegativeValueCalcError],
+			["y","p", InvalidHexCalcError],
 			["abc","abc", "0"],
 			["000003","00000001", "2"],
 			["C0D","0000B", "C02"],
@@ -64,7 +65,7 @@ describe("Test for Operators", () => {
 
 				expect(actual).toBe(ans);
 			}catch(err){
-				if(err instanceof Error){
+				if(err instanceof CalcError){
 					expect(err).toBeInstanceOf(ans);
 				}else{
 					throw err;
@@ -84,11 +85,11 @@ describe("Test for Operators", () => {
 			["090","20", "1200"],
 			["01","00040", "40"],
 			["","3", "0"],
-			["y","p", Error],
-			["abc","-abc", Error],
+			["y","p", InvalidHexCalcError],
+			["abc","-abc", NegativeValueCalcError],
 			["000003","00000001", "3"],
 			["C0D","0000B", "848F"],
-			["-1","-3", Error],
+			["-1","-3", NegativeValueCalcError],
 			["FFf","ffF", "FFE001"],
 		];
 
@@ -98,7 +99,7 @@ describe("Test for Operators", () => {
 
 				expect(actual).toBe(ans);
 			}catch(err){
-				if(err instanceof Error){
+				if(err instanceof CalcError){
 					expect(err).toBeInstanceOf(ans);
 				}else{
 					throw err;
@@ -116,14 +117,14 @@ describe("Test for Operators", () => {
 			["a","4", "2"],
 			["0","1", "0"],
 			["0100","1", "100"],
-			["1","000", Error],
-			["0","000", Error],
+			["1","000", InfinityCalcError],
+			["0","000", UndefinedCalcError],
 			["1200","020", "90"],
 			["01","00040", "0"],
 			["","3", "0"],
-			["y","p", Error],
-			["abc","-abc", Error],
-			["-2","-4", Error],
+			["y","p", InvalidHexCalcError],
+			["abc","-abc", NegativeValueCalcError],
+			["-2","-4", NegativeValueCalcError],
 			["000003","00000001", "3"],
 			["848f","0000B", "C0D"],
 			["FFf","ffe", "1"],
@@ -135,7 +136,7 @@ describe("Test for Operators", () => {
 
 				expect(actual).toBe(ans);
 			}catch(err){
-				if(err instanceof Error){
+				if(err instanceof CalcError){
 					expect(err).toBeInstanceOf(ans);
 				}else{
 					throw err;
