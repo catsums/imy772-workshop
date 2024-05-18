@@ -1,10 +1,11 @@
 
 import {describe, test, expect, jest} from "@jest/globals";
 
-let mockAdd = jest.fn((x,y) => (x));
-let mockSubtract = jest.fn((x,y) => (x));
-let mockMultiply = jest.fn((x,y) => (x));
-let mockDivide = jest.fn((x,y) => (x));
+import { Operators } from "./operators";
+
+const {
+	Add, Subtract, Multiply, Divide,
+} = Operators;
 
 describe("Test for Operators", () => {
 	test("Test Addition", () => {
@@ -26,7 +27,7 @@ describe("Test for Operators", () => {
 
 		for(let [a, b, ans] of tests){
 			try{
-				let actual = mockAdd(a,b);
+				let actual = Add.hexCalculate(a,b);
 
 				expect(actual).toBe(ans);
 			}catch(err){
@@ -59,7 +60,7 @@ describe("Test for Operators", () => {
 
 		for(let [a, b, ans] of tests){
 			try{
-				let actual = mockSubtract(a,b);
+				let actual = Subtract.hexCalculate(a,b);
 
 				expect(actual).toBe(ans);
 			}catch(err){
@@ -93,7 +94,7 @@ describe("Test for Operators", () => {
 
 		for(let [a, b, ans] of tests){
 			try{
-				let actual = mockMultiply(a,b);
+				let actual = Multiply.hexCalculate(a,b);
 
 				expect(actual).toBe(ans);
 			}catch(err){
@@ -130,7 +131,7 @@ describe("Test for Operators", () => {
 
 		for(let [a, b, ans] of tests){
 			try{
-				let actual = mockDivide(a,b);
+				let actual = Divide.hexCalculate(a,b);
 
 				expect(actual).toBe(ans);
 			}catch(err){
