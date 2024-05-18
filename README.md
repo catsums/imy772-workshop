@@ -21,6 +21,6 @@
 |                       | Clear button to clear cache storage                                                                                           |
 | GUI                   | Have buttons for each operation clickable to perform operations                                                               |
 |                       | Display input and output in a display box                                                                                     |
-|                       | Display cached data in a seperate display box, along with the last operation                                                  |
+|                       | Display cached data in a separate display box, along with the last operation                                                  |
 | Database              | Store the last operations and answers in a database                                                                           |
 |                       | Load database to client side when needing to display history                                                                  |
