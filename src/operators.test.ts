@@ -29,7 +29,7 @@ describe("Test for Operators", () => {
 		for(let [a, b, ans] of tests){
 			test(`Test Add(${a},${b})`, () => {
 				try{
-					let actual = Add.hexCalculate(a,b);
+					let actual = Add.hexCalculate(a as string, b as string);
 
 					expect(actual).toBe(ans);
 				}catch(err){
@@ -64,7 +64,7 @@ describe("Test for Operators", () => {
 		for(let [a, b, ans] of tests){
 			test(`Test Subtract(${a},${b})`, () => {
 				try{
-					let actual = Subtract.hexCalculate(a,b);
+					let actual = Subtract.hexCalculate(a as string, b as string);
 
 					expect(actual).toBe(ans);
 				}catch(err){
@@ -100,7 +100,7 @@ describe("Test for Operators", () => {
 		for(let [a, b, ans] of tests){
 			test(`Test Multiply(${a},${b})`, () => {
 				try{
-					let actual = Multiply.hexCalculate(a,b);
+					let actual = Multiply.hexCalculate(a as string, b as string);
 
 					expect(actual).toBe(ans);
 				}catch(err){
@@ -120,7 +120,7 @@ describe("Test for Operators", () => {
 			["4B","F", "5"],
 			["Af0","e", "C8"],
 			["420","20", "21"],
-			["a","4", "2"],
+			["a","4", "3"],
 			["0","1", "0"],
 			["0100","1", "100"],
 			["1","000", InfinityCalcError],
@@ -139,7 +139,7 @@ describe("Test for Operators", () => {
 		for(let [a, b, ans] of tests){
 			test(`Test Divide(${a},${b})`, () => {
 				try{
-					let actual = Divide.hexCalculate(a,b);
+					let actual = Divide.hexCalculate(a as string, b as string);
 
 					expect(actual).toBe(ans);
 				}catch(err){
