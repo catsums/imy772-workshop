@@ -153,6 +153,10 @@ export function HEXtoDEC(hexString: string): string {
 }
 
 export function DECtoHEX(decValue:(string|number)) : string{
+	if(_.isString(decValue)){
+		decValue = decValue.trim();
+	}
+	
 	//throw error if DEC value is NaN
 	if((_.isNaN(decValue) || decValue.toString() === "NaN")){
 		throw new UndefinedCalcError(`${decValue} is undefined`, decValue as number);
