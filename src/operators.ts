@@ -69,7 +69,8 @@ class MultiplyOp extends Operator {
 	}
 
 	private constructor(){
-		super("Multiply", "×");
+		// super("Multiply", "×");
+		super("Multiply", "*");
 	}
 
 	override calculate(...args: number[]) {
@@ -86,7 +87,8 @@ class DivideOp extends Operator {
 	}
 	
 	private constructor(){
-		super("Divide", "÷");
+		// super("Divide", "÷");
+		super("Divide", "/");
 	}
 
 	override calculate(...args: number[]) {
