@@ -11,12 +11,16 @@ const hexBase = 16;
 export function parseInput(input: string): string {
 	let parsed = "";
 
+	input = input.trim();
+
 	//filter out invalid characters
 	for(let char of input){
 		//temporarily add negative sign
 		if(!parsed.length && char === '-'){
 			parsed += char;
-		}else if(HEX_CHARS.includes(char.toUpperCase())){
+		}
+		//add if character is valid character
+		else if(HEX_CHARS.includes(char.toUpperCase())){
 			parsed += char.toUpperCase();
 		}
 		//if theres decimal point, stop at integral part
@@ -24,6 +28,9 @@ export function parseInput(input: string): string {
 			break;
 		}
 	}
+
+	//trim whitespace
+	parsed = parsed.trim();
 
 	//reject negative
 	if(parsed[0] === '-'){
@@ -51,10 +58,12 @@ export function parseInput(input: string): string {
 export function parseOutput(output: string){
 	let parsed = "";
 
-	if(output == "Infinity"){
+	output = output.trim();
+
+	if(output.toUpperCase() == "INFINITY" || output.toUpperCase() == "-INFINITY"){
 		throw new InfinityCalcError(`${output} can't be processed.`, Number(output));
 	}
-	if(output == "NaN"){
+	if(output.toUpperCase() == "NAN"){
 		throw new UndefinedCalcError(`${output} can't be processed because it is undefined.`, Number(output));
 	}
 
@@ -74,6 +83,9 @@ export function parseOutput(output: string){
 	if(parsed[0] === '-'){
 		throw new NegativeValueCalcError(`${output} cannot be processed because it is negative`, parsed);
 	}
+
+	//trim whitespace
+	parsed = parsed.trim();
 
 	//limit number of output characters (right to left)
 	parsed = parsed.substring(parsed.length - outputLimit);
@@ -100,6 +112,8 @@ export function parseOutput(output: string){
 
 export function HEXtoDEC(hexString: string): string {
 	let sum = 0;
+
+	hexString = hexString.trim();
 
 	if(hexString.length <= 0){
 		hexString += "0";
@@ -139,6 +153,10 @@ export function HEXtoDEC(hexString: string): string {
 }
 
 export function DECtoHEX(decValue:(string|number)) : string{
+	if(_.isString(decValue)){
+		decValue = decValue.trim();
+	}
+
 	//throw error if DEC value is NaN
 	if((_.isNaN(decValue) || decValue.toString() === "NaN")){
 		throw new UndefinedCalcError(`${decValue} is undefined`, decValue as number);

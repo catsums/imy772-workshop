@@ -11,10 +11,34 @@ describe("Test Processing inputs into valid inputs", () => {
 			"12" : "12",
 			"B" : "B",
 			"fF" : "FF",
+			"123" : "123",
+			"100" : "100",
 			"12a" : "12A",
-			"09" : "9",
 			"10" : "10",
+			" abc " : "ABC",
+			"e3    " : "E3",
+			"   D18" : "D18",
+		}
+
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test parseInput(${k})`, () => {
+				let actual = parseInput(k);
+	
+				expect(actual).toBe(v);
+			})
+		}
+	});
+
+	describe("Test leading zero inputs", () => {
+		let tests = {
+			"00b" : "B",
+			"09" : "9",
 			"0A0" : "A0",
+			"0" : "0",
+			"00" : "0",
+			"000" : "0",
+			"0 0 9" : "9",
+			"   0ffe" : "FFE",
 			"" : "",
 		}
 
@@ -30,6 +54,8 @@ describe("Test Processing inputs into valid inputs", () => {
 	describe("Test rejecting invalid inputs", () => {
 		let tests = {
 			"34G" : "34",
+			"meow" : "E",
+			"kis" : "",
 			"opqr" : "",
 			"fish" : "F",
 			"DIED" : "DED",
@@ -62,32 +88,6 @@ describe("Test Processing inputs into valid inputs", () => {
 			});
 		}
 	});
-
-	describe("Test throw error for negative inputs", () => {
-		let tests = {
-			"-34" : NegativeValueCalcError,
-			"-1" : NegativeValueCalcError,
-			"-0" : NegativeValueCalcError,
-			"-321.0" : NegativeValueCalcError,
-			"-888" : NegativeValueCalcError,
-		}
-
-		for(let [k,v] of Object.entries(tests)) {
-			test(`Test parseInput(${k})`, () => {
-				try{
-					let actual = parseInput(k);
-		
-					expect(actual).toBe(v);
-				}catch(err){
-					if(err instanceof CalcError){
-						expect(err).toBeInstanceOf(v);
-					}else{
-						throw err;
-					}
-				}
-			});
-		}
-	});
 	
 	describe("Test limit input size", () => {
 		let tests = {
@@ -109,12 +109,13 @@ describe("Test Processing inputs into valid inputs", () => {
 	describe("Test filtering input", () => {
 		let tests = {
 			"234RaT" : "234",
-			"Tea20" : "EA2",
-			"PoissonH0nH0nH0n" : "0",
+			"Tea 20" : "EA2",
+			"Poisson H0n H0n H0n" : "0",
 			"g00ner" : "E",
 			"Y9(#}&CIyheHv2" : "9CE",
 			"ABI64C93%" : "AB6",
-			"(9000)" : "900",
+			" ( 9000 ) " : "900",
+			"02\nF1" : "2F1",
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
@@ -126,7 +127,41 @@ describe("Test Processing inputs into valid inputs", () => {
 		}
 	});
 
-	describe("Test HEX to DEC conversion", () => {
+	describe("Test throw error for negative inputs", () => {
+		let tests = {
+			"-34" : NegativeValueCalcError,
+			"-1" : NegativeValueCalcError,
+			"-0" : NegativeValueCalcError,
+			"-" : NegativeValueCalcError,
+			"-321.0" : NegativeValueCalcError,
+			"  -888" : NegativeValueCalcError,
+			"-rm" : NegativeValueCalcError,
+			"jk-90" : NegativeValueCalcError,
+			"ea-on" : "EA",
+		}
+
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test parseInput(${k})`, () => {
+				try{
+					let actual = parseInput(k);
+		
+					expect(actual).toBe(v);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
+
+	
+});
+
+describe("Test HEX to DEC conversion", () => {
+	describe("Test valid values", () => {
 		let tests = {
 			"2" : "2",
 			"B" : "11",
@@ -135,17 +170,115 @@ describe("Test Processing inputs into valid inputs", () => {
 			"26B" : "619",
 			"1f" : "31",
 			"b41" : "2881",
+			"  34  " : "52",
+			"  b1" : "177",
+			"7CE   " : "1998",
+			"" : "0",
 		}
-
+	
 		for(let [k,v] of Object.entries(tests)) {
 			test(`Test HEXtoDEC(${k})`, () => {
 				let actual = HEXtoDEC(k);
-
+	
 				expect(actual).toBe(v);
 			});
 		}
 	});
-
+	describe("Test leading zeroes values", () => {
+		let tests = {
+			"0" : "0",
+			"001" : "1",
+			"0A" : "10",
+			"0340" : "832",
+			" 019F " : "415",
+		}
+	
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test HEXtoDEC(${k})`, () => {
+				let actual = HEXtoDEC(k);
+	
+				expect(actual).toBe(v);
+			});
+		}
+	});
+	describe("Test decimal values", () => {
+		let tests = {
+			"3.14" : "3",
+			".9" : "0",
+			"12.11" : "18",
+			"0001B.4" : "27",
+			"0.0" : "0",
+			"4.3.2.1" : "4",
+			"c9." : "201",
+		}
+	
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test HEXtoDEC(${k})`, () => {
+				let actual = HEXtoDEC(k);
+	
+				expect(actual).toBe(v);
+			});
+		}
+	});
+	describe("Test for invalid values", () => {
+		let tests = {
+			"p" : InvalidHexCalcError,
+			"rat" : InvalidHexCalcError,
+			" a b" : InvalidHexCalcError,
+			"0 2 4" : InvalidHexCalcError,
+			"+1" : InvalidHexCalcError,
+			"2f%" : InvalidHexCalcError,
+		}
+	
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test HEXtoDEC(${k})`, () => {
+				try{
+					let actual = HEXtoDEC(k);
+		
+					expect(actual).toBe(v);
+					
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
+	describe("Test for negative values", () => {
+		let tests = {
+			"-f" : NegativeValueCalcError,
+			"-1.2" : NegativeValueCalcError,
+			"-3.14" : NegativeValueCalcError,
+			"-c&" : NegativeValueCalcError,
+			"9-0" : InvalidHexCalcError,
+			"--5" : NegativeValueCalcError,
+			"ee---" : InvalidHexCalcError,
+			"-4-5-1" : NegativeValueCalcError,
+			"- 8" : NegativeValueCalcError,
+			" 1- 8" : InvalidHexCalcError,
+			"-p-" : NegativeValueCalcError,
+		}
+	
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test HEXtoDEC(${k})`, () => {
+				try{
+					let actual = HEXtoDEC(k);
+		
+					expect(actual).toBe(v);
+					
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
 });
 
 
@@ -164,6 +297,8 @@ describe("Test Processing Outputs into valid outputs", () => {
 			"7ABC" : "7ABC",
 			"0A1" : "A1",
 			"000111" : "111",
+			"34 " : "34",
+			" ae24" : "AE24",
 			"" : "0",
 		}
 
@@ -195,47 +330,20 @@ describe("Test Processing Outputs into valid outputs", () => {
 		}
 	});
 
-	describe("Test DEC to HEX conversion", () => {
-		let tests = {
-			"0" : "0",
-			"8" : "8",
-			"10" : "A",
-			"2.5" : "3",
-			"3.14" : "3",
-			"0.91" : "1",
-			"2200" : "898",
-			"125" : "7D",
-			"69" : "45",
-			"111" : "6F",
-			"890" : "37A",
-		}
-
-		for(let [k,v] of Object.entries(tests)) {
-			test(`Test DECtoHEX(${k})`, () => {
-				let actual = DECtoHEX(k);
-
-				expect(actual).toBe(v);
-			});
-		}
-	});
-
-	describe("Test throw error for negative, NaN and Infinity conversions", () => {
+	describe("Test throw error for negative outputs", () => {
 		let tests = {
 			"-34" : NegativeValueCalcError,
-			"-1" : NegativeValueCalcError,
+			"-A" : NegativeValueCalcError,
 			"-0" : NegativeValueCalcError,
-			"-321.0" : NegativeValueCalcError,
-			"Infinity" : InfinityCalcError,
-			[Infinity] : InfinityCalcError,
-			"gill" : InvalidDecCalcError,
-			"invalidHere" : InvalidDecCalcError,
-			[NaN] : UndefinedCalcError,
+			"-ABC" : NegativeValueCalcError,
+			"-" : NegativeValueCalcError,
+			"-2B2D" : NegativeValueCalcError,
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
-			test(`Test DECtoHEX(${k})`, () => {
+			test(`Test parseOutput(${k})`, () => {
 				try{
-					let actual = DECtoHEX(k);
+					let actual = parseOutput(k);
 		
 					expect(actual).toBe(v);
 				}catch(err){
@@ -248,18 +356,37 @@ describe("Test Processing Outputs into valid outputs", () => {
 			});
 		}
 	});
-
-	describe("Test throw error for negative, NaN and Infinity outputs", () => {
+	describe("Test throw error for NaN and Infinity outputs", () => {
 		let tests = {
-			"-34" : NegativeValueCalcError,
-			"-A" : NegativeValueCalcError,
-			"-0" : NegativeValueCalcError,
-			"-ABC" : NegativeValueCalcError,
-			"-" : NegativeValueCalcError,
-			"-2B2D" : NegativeValueCalcError,
 			"Infinity" : InfinityCalcError,
-			"invalidHere" : InvalidHexCalcError,
+			"infinity" : InfinityCalcError,
 			"NaN" : UndefinedCalcError,
+			"Nan" : UndefinedCalcError,
+		}
+
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test parseOutput(${k})`, () => {
+				try{
+					let actual = parseOutput(k);
+		
+					expect(actual).toBe(v);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
+	describe("Test throw error for invalid outputs", () => {
+		let tests = {
+			"invalidHere" : InvalidHexCalcError,
+			"EAR" : InvalidHexCalcError,
+			"B A S E D" : InvalidHexCalcError,
+			"A-B" : InvalidHexCalcError,
+			"a bc" : InvalidHexCalcError,
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
@@ -279,4 +406,124 @@ describe("Test Processing Outputs into valid outputs", () => {
 		}
 	});
 
+});
+
+describe("Test DEC to HEX conversion", () => {
+	describe("Test valid values", () => {
+		let tests = {
+			"0" : "0",
+			"8" : "8",
+			"10" : "A",
+			"2200" : "898",
+			"125" : "7D",
+			" 69" : "45",
+			"111 " : "6F",
+			" 890 " : "37A",
+			"" : "0",
+			"   " : "0",
+		}
+		
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test DECtoHEX(${k})`, () => {
+				let actual = DECtoHEX(k);
+				
+				expect(actual).toBe(v);
+			});
+		}
+	});
+	describe("Test for decimal values", () => {
+		let tests = {
+			"2.5" : "3",
+			"3.14" : "3",
+			"0.91" : "1",
+			"22.00" : "16",
+			"23.01" : "17",
+			"   0.01" : "0",
+		}
+		
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test DECtoHEX(${k})`, () => {
+				let actual = DECtoHEX(k);
+				
+				expect(actual).toBe(v);
+			});
+		}
+	});
+	describe("Test for invalid values", () => {
+		let tests = {
+			"AB" : InvalidDecCalcError,
+			"gill" : InvalidDecCalcError,
+			"0 1" : InvalidDecCalcError,
+			" 78 .1" : InvalidDecCalcError,
+			"-f" : InvalidDecCalcError,
+			"0.1%" : InvalidDecCalcError,
+			"\n8\n1" : InvalidDecCalcError,
+		}
+
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test DECtoHEX(${k})`, () => {
+				try{
+					let actual = DECtoHEX(k);
+		
+					expect(actual).toBe(v);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
+
+	describe("Test throw error for negative values", () => {
+		let tests = {
+			"-34" : NegativeValueCalcError,
+			"-1" : NegativeValueCalcError,
+			"-0" : NegativeValueCalcError,
+			"-321.0" : NegativeValueCalcError,
+		}
+
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test DECtoHEX(${k})`, () => {
+				try{
+					let actual = DECtoHEX(k);
+		
+					expect(actual).toBe(v);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
+	describe("Test throw error and NaN and Infinity conversions", () => {
+		let tests = {
+			"Infinity" : InfinityCalcError,
+			[Infinity] : InfinityCalcError,
+			[NaN] : UndefinedCalcError,
+			"NaN" : UndefinedCalcError,
+		}
+
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test DECtoHEX(${k})`, () => {
+				try{
+					let actual = DECtoHEX(k);
+		
+					expect(actual).toBe(v);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
+	
 });
