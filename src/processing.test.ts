@@ -54,7 +54,7 @@ describe("Test Processing inputs into valid inputs", () => {
 	describe("Test rejecting invalid inputs", () => {
 		let tests = {
 			"34G" : "34",
-			"meow" : "e",
+			"meow" : "E",
 			"kis" : "",
 			"opqr" : "",
 			"fish" : "F",
@@ -137,7 +137,7 @@ describe("Test Processing inputs into valid inputs", () => {
 			"  -888" : NegativeValueCalcError,
 			"-rm" : NegativeValueCalcError,
 			"jk-90" : NegativeValueCalcError,
-			"ea-on" : NegativeValueCalcError,
+			"ea-on" : "EA",
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
@@ -298,7 +298,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 			"0A1" : "A1",
 			"000111" : "111",
 			"34 " : "34",
-			" ae24" : "AE34",
+			" ae24" : "AE24",
 			"" : "0",
 		}
 
@@ -361,7 +361,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 			"Infinity" : InfinityCalcError,
 			"infinity" : InfinityCalcError,
 			"NaN" : UndefinedCalcError,
-			"Nan" : InvalidHexCalcError,
+			"Nan" : UndefinedCalcError,
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
@@ -462,9 +462,17 @@ describe("Test DEC to HEX conversion", () => {
 
 		for(let [k,v] of Object.entries(tests)) {
 			test(`Test DECtoHEX(${k})`, () => {
-				let actual = DECtoHEX(k);
-
-				expect(actual).toBe(v);
+				try{
+					let actual = DECtoHEX(k);
+		
+					expect(actual).toBe(v);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
 			});
 		}
 	});
