@@ -297,6 +297,8 @@ describe("Test Processing Outputs into valid outputs", () => {
 			"7ABC" : "7ABC",
 			"0A1" : "A1",
 			"000111" : "111",
+			"34 " : "34",
+			" ae24" : "AE34",
 			"" : "0",
 		}
 
@@ -328,7 +330,7 @@ describe("Test Processing Outputs into valid outputs", () => {
 		}
 	});
 
-	describe("Test throw error for negative, NaN and Infinity outputs", () => {
+	describe("Test throw error for negative outputs", () => {
 		let tests = {
 			"-34" : NegativeValueCalcError,
 			"-A" : NegativeValueCalcError,
@@ -336,9 +338,55 @@ describe("Test Processing Outputs into valid outputs", () => {
 			"-ABC" : NegativeValueCalcError,
 			"-" : NegativeValueCalcError,
 			"-2B2D" : NegativeValueCalcError,
+		}
+
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test parseOutput(${k})`, () => {
+				try{
+					let actual = parseOutput(k);
+		
+					expect(actual).toBe(v);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
+	describe("Test throw error for NaN and Infinity outputs", () => {
+		let tests = {
 			"Infinity" : InfinityCalcError,
-			"invalidHere" : InvalidHexCalcError,
+			"infinity" : InfinityCalcError,
 			"NaN" : UndefinedCalcError,
+			"Nan" : InvalidHexCalcError,
+		}
+
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test parseOutput(${k})`, () => {
+				try{
+					let actual = parseOutput(k);
+		
+					expect(actual).toBe(v);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
+	describe("Test throw error for invalid outputs", () => {
+		let tests = {
+			"invalidHere" : InvalidHexCalcError,
+			"EAR" : InvalidHexCalcError,
+			"B A S E D" : InvalidHexCalcError,
+			"A-B" : InvalidHexCalcError,
+			"a bc" : InvalidHexCalcError,
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
@@ -366,14 +414,50 @@ describe("Test DEC to HEX conversion", () => {
 			"0" : "0",
 			"8" : "8",
 			"10" : "A",
+			"2200" : "898",
+			"125" : "7D",
+			" 69" : "45",
+			"111 " : "6F",
+			" 890 " : "37A",
+			"" : "0",
+			"   " : "0",
+		}
+		
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test DECtoHEX(${k})`, () => {
+				let actual = DECtoHEX(k);
+				
+				expect(actual).toBe(v);
+			});
+		}
+	});
+	describe("Test for decimal values", () => {
+		let tests = {
 			"2.5" : "3",
 			"3.14" : "3",
 			"0.91" : "1",
-			"2200" : "898",
-			"125" : "7D",
-			"69" : "45",
-			"111" : "6F",
-			"890" : "37A",
+			"22.00" : "16",
+			"23.01" : "17",
+			"   0.01" : "0",
+		}
+		
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test DECtoHEX(${k})`, () => {
+				let actual = DECtoHEX(k);
+				
+				expect(actual).toBe(v);
+			});
+		}
+	});
+	describe("Test for invalid values", () => {
+		let tests = {
+			"AB" : InvalidDecCalcError,
+			"gill" : InvalidDecCalcError,
+			"0 1" : InvalidDecCalcError,
+			" 78 .1" : InvalidDecCalcError,
+			"-f" : InvalidDecCalcError,
+			"0.1%" : InvalidDecCalcError,
+			"\n8\n1" : InvalidDecCalcError,
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
@@ -385,17 +469,36 @@ describe("Test DEC to HEX conversion", () => {
 		}
 	});
 
-	describe("Test throw error for negative, NaN and Infinity conversions", () => {
+	describe("Test throw error for negative values", () => {
 		let tests = {
 			"-34" : NegativeValueCalcError,
 			"-1" : NegativeValueCalcError,
 			"-0" : NegativeValueCalcError,
 			"-321.0" : NegativeValueCalcError,
+		}
+
+		for(let [k,v] of Object.entries(tests)) {
+			test(`Test DECtoHEX(${k})`, () => {
+				try{
+					let actual = DECtoHEX(k);
+		
+					expect(actual).toBe(v);
+				}catch(err){
+					if(err instanceof CalcError){
+						expect(err).toBeInstanceOf(v);
+					}else{
+						throw err;
+					}
+				}
+			});
+		}
+	});
+	describe("Test throw error and NaN and Infinity conversions", () => {
+		let tests = {
 			"Infinity" : InfinityCalcError,
 			[Infinity] : InfinityCalcError,
-			"gill" : InvalidDecCalcError,
-			"invalidHere" : InvalidDecCalcError,
 			[NaN] : UndefinedCalcError,
+			"NaN" : UndefinedCalcError,
 		}
 
 		for(let [k,v] of Object.entries(tests)) {
