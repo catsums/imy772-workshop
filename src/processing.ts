@@ -60,10 +60,10 @@ export function parseOutput(output: string){
 
 	output = output.trim();
 
-	if(output == "Infinity"){
+	if(output.toUpperCase() == "INFINITY" || output.toUpperCase() == "-INFINITY"){
 		throw new InfinityCalcError(`${output} can't be processed.`, Number(output));
 	}
-	if(output == "NaN"){
+	if(output.toUpperCase() == "NAN"){
 		throw new UndefinedCalcError(`${output} can't be processed because it is undefined.`, Number(output));
 	}
 
@@ -156,7 +156,7 @@ export function DECtoHEX(decValue:(string|number)) : string{
 	if(_.isString(decValue)){
 		decValue = decValue.trim();
 	}
-	
+
 	//throw error if DEC value is NaN
 	if((_.isNaN(decValue) || decValue.toString() === "NaN")){
 		throw new UndefinedCalcError(`${decValue} is undefined`, decValue as number);
