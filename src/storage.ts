@@ -91,21 +91,25 @@ export class Calculator {
 		//check if token is included
 		if(!AllTokens.includes(token)){
 			//check if token is a HEX number with valid characters
-			for(let char of token){
-				if(!HEXTokens.includes(char)){
-					return;
-				}
+			if(!isHexToken(token)){
+				return;
 			}
 		}
 
-		if(OperationTokens.includes(this.current)){
-			this.current = token;
-		}else if(SpecialTokens.includes(token)){
-			this.store.push(token);
-		}else if(OperationTokens.includes(token)){
-			this.store.push(token);
-		}else{
-			this.store.push(parseInput(token));
+		if(OperationTokens.includes(token)){
+			if(OperationTokens.includes(this.current)){
+				this.current = token;
+			}else if(this.current){
+				this.store.push(token);
+			}
+		}else if(token == Ans){
+			if(OperationTokens.includes(this.current)){
+				this.store.push(token);
+			}else if(!this.current){
+				this.current = token;
+			}
+		}else if(!this.current){
+			this.appendCurrentToken(token);
 		}
 	}
 
