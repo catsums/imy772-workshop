@@ -136,7 +136,6 @@ export class Calculator {
 }
 
 function isOperatorToken(token: string) {
-	return opTokens.includes(token);
 	return OperationTokens.includes(token);
 }
 function isHexToken(token: string) {
