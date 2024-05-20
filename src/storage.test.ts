@@ -218,7 +218,8 @@ describe("Test Storage from input stream", () => {
 				"k" : [],
 				"moo" : [],
 				"woah" : ["A"],
-				"8*@/+/3" : ["8","+","@","/","3"],
+				"8*@/+/3" : ["8","*","@","/","3"],
+				"1@+@2-3@": ["1", "+", "@", "-", "3"],
 			};
 	
 			for(let [k,v] of Object.entries(tests)){
@@ -254,7 +255,8 @@ describe("Test Storage from input stream", () => {
 			"1+2*5-3/7*3+9": "13",
 			"1+@": "B",
 			"@-6": "4",
-			"1@+@2-3@": "4",
+			"8*@/+/3" : "1B",
+			"1@+@2-3@": "8",
 		};
 
 		for(let [k,v] of Object.entries(tests)){
