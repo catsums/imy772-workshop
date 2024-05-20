@@ -1,26 +1,37 @@
+import { MongoClient } from "mongodb";
+
 import { InputStream, StoreType } from "./storage";
 
-interface ICalculatorInput {
+import dotenv from "dotenv";
+dotenv.config({
+	path: "./src/db.dev.env",
+});
+
+export interface ICalculatorInput {
 	stream?: string;
 	tokens?: StoreType;
 	inTime: Date;
 }
-interface ICalculatorInputStream extends ICalculatorInput {
+export interface ICalculatorInputStream extends ICalculatorInput {
 	stream: InputStream;
 }
-interface ICalculatorInputTokens extends ICalculatorInput {
+export interface ICalculatorInputTokens extends ICalculatorInput {
 	tokens: StoreType;
 }
 
-interface ICalculatorOutput {
+export interface ICalculatorOutput {
 	input: string;
 	output: string;
 	inTime: Date;
 	outTime: Date;
 }
 
-interface IUserData {
+export interface IUserData {
 	id: string;
 	history: ICalculatorOutput;
 }
 
+const DB = {
+	name: process.env.DB_NAME || "",
+	url: process.env.DB_URL || "",
+}
