@@ -147,7 +147,7 @@ function isHexToken(token: string) {
 	return true;
 }
 
-export function addTokens(stream:string, store:string[]){
+function addTokens(stream:InputStream, store:StoreType){
 	for(let token of stream){
 		addToken(token, store);
 	}
@@ -155,7 +155,7 @@ export function addTokens(stream:string, store:string[]){
 	return store;
 }
 
-export function addToken(token:string, store:string[]){
+function addToken(token:string, store:StoreType){
 	//get index of latest element in array
 	function curr(){
 		let c = store.length-1;
