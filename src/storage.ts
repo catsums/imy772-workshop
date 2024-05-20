@@ -137,6 +137,15 @@ export class Calculator {
 
 function isOperatorToken(token: string) {
 	return opTokens.includes(token);
+	return OperationTokens.includes(token);
+}
+function isHexToken(token: string) {
+	for(let char of token){
+		if(!HEXTokens.includes(char)){
+			return false;
+		}
+	}
+	return true;
 }
 
 export function addTokens(stream:string, store:string[]){
