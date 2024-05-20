@@ -1,7 +1,6 @@
 import { Operator, Operators } from "./operators";
 import { DECtoHEX, HEX_CHARS, HEXtoDEC, parseInput } from "./processing";
 
-const opTokens = "+-*/";
 type StoreType = string[];
 type InputStream = string;
 
@@ -197,8 +196,6 @@ export function processStore(store:string[], history:string[] = []){
 	let ans = history.at(-1) || "0";
 
 	let init = store.map((t)=>{
-		if(!isOperatorToken(t)){
-			return Number(HEXtoDEC(t))
 		t = t.toUpperCase();
 		switch(true){
 			case (isHexToken(t)):
@@ -246,7 +243,7 @@ export function processStore(store:string[], history:string[] = []){
 					i -= 2;
 					
 				}
-				console.log({init, i});
+				// console.log({init, i});
 			}
 
 	
