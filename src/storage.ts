@@ -2,6 +2,29 @@ import { Operator, Operators } from "./operators";
 import { DECtoHEX, HEX_CHARS, HEXtoDEC, parseInput } from "./processing";
 
 const opTokens = "+-*/";
+interface ICalculatorInput {
+	stream?: string;
+	tokens?: StoreType;
+	inTime: Date;
+}
+interface ICalculatorInputStream extends ICalculatorInput {
+	stream: InputStream;
+}
+interface ICalculatorInputTokens extends ICalculatorInput {
+	tokens: StoreType;
+}
+
+interface ICalculatorOutput {
+	input: string;
+	output: string;
+	inTime: Date;
+	outTime: Date;
+}
+
+interface IUserData {
+	id: string;
+	history: ICalculatorOutput;
+}
 function isOperatorToken(token: string) {
 	return opTokens.includes(token);
 }
