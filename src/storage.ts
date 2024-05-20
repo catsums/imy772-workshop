@@ -1,39 +1,17 @@
 import { Operator, Operators } from "./operators";
 import { DECtoHEX, HEX_CHARS, HEXtoDEC, parseInput } from "./processing";
 
-type StoreType = string[];
-type InputStream = string;
+export type StoreType = string[];
+export type InputStream = string;
 
-const OperationTokens = "+-*/".split("");
-const HEXTokens = "0123456789ABCDEF".split("");
-const Ans = "@";
-const SpecialTokens = [Ans,];
+export const OperationTokens = "+-*/".split("");
+export const HEXTokens = "0123456789ABCDEF".split("");
+export const SpecialToken = {
+	Ans: "@",
+}
+export const SpecialTokens = Object.values(SpecialToken);;
 
-const AllTokens = [].concat(OperationTokens, HEXTokens, SpecialTokens);
-
-interface ICalculatorInput {
-	stream?: string;
-	tokens?: StoreType;
-	inTime: Date;
-}
-interface ICalculatorInputStream extends ICalculatorInput {
-	stream: InputStream;
-}
-interface ICalculatorInputTokens extends ICalculatorInput {
-	tokens: StoreType;
-}
-
-interface ICalculatorOutput {
-	input: string;
-	output: string;
-	inTime: Date;
-	outTime: Date;
-}
-
-interface IUserData {
-	id: string;
-	history: ICalculatorOutput;
-}
+export const AllTokens = [].concat(OperationTokens, HEXTokens, SpecialTokens);
 
 export class Calculator {
 	private store: StoreType;
@@ -72,7 +50,7 @@ export class Calculator {
 			case (!curr):
 				curr = "";
 				break;
-			case (curr == Ans):
+			case (curr == SpecialToken.Ans):
 				return;
 			case (OperationTokens.includes(curr)):
 				this.store.push("");
@@ -102,7 +80,7 @@ export class Calculator {
 			}else if(this.current){
 				this.store.push(token);
 			}
-		}else if(token == Ans){
+		}else if(token == SpecialToken.Ans){
 			if(OperationTokens.includes(this.current)){
 				this.store.push(token);
 			}else if(!this.current){
@@ -124,7 +102,7 @@ export class Calculator {
 				this.addToken(char);
 			}else if(SpecialTokens.includes(char)){
 				switch(char){
-					case Ans:
+					case SpecialToken.Ans:
 						this.addToken(char);
 						break;
 				}
@@ -204,7 +182,7 @@ export function processStore(store:string[], history:string[] = []){
 		switch(true){
 			case (isHexToken(t)):
 				return Number(HEXtoDEC(t));
-			case (t == Ans):
+			case (t == SpecialToken.Ans):
 				return Number(HEXtoDEC(ans));
 			default:
 				return t;
@@ -240,10 +218,10 @@ export function processStore(store:string[], history:string[] = []){
 
 				
 				if(op){
-					let ans = calculate(a,b,op);
+					let res = calculate(a,b,op);
 					// console.log({a,b,op, i, ans});
 
-					init.splice(i-1, 3, ans);
+					init.splice(i-1, 3, res);
 					i -= 2;
 					
 				}
