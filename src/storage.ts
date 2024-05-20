@@ -167,7 +167,7 @@ function addToken(token:string, store:StoreType){
 
 	token = token.toUpperCase();
 
-	if(opTokens.includes(token)){
+	if(isOperatorToken(token)){
 		if(store.length && store[0]){
 			if( isOperatorToken(store[curr()]) ){
 				//replace operator in cell
@@ -193,13 +193,23 @@ function addToken(token:string, store:StoreType){
 	return store;
 }
 
-export function processStore(store:string[]){
+export function processStore(store:string[], history:string[] = []){
+	let ans = history.at(-1) || "0";
+
 	let init = store.map((t)=>{
 		if(!isOperatorToken(t)){
 			return Number(HEXtoDEC(t))
+		t = t.toUpperCase();
+		switch(true){
+			case (isHexToken(t)):
+				return Number(HEXtoDEC(t));
+			case (t == Ans):
+				return Number(HEXtoDEC(ans));
+			default:
+				return t;
 		}
-		return t;
 	});
+
 	
 	// Multiplication and Division first
 	// Then Addition and Subtraction
@@ -230,7 +240,7 @@ export function processStore(store:string[]){
 				
 				if(op){
 					let ans = calculate(a,b,op);
-					console.log({a,b,op, i, ans});
+					// console.log({a,b,op, i, ans});
 
 					init.splice(i-1, 3, ans);
 					i -= 2;
