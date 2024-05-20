@@ -2,6 +2,16 @@ import { Operator, Operators } from "./operators";
 import { DECtoHEX, HEX_CHARS, HEXtoDEC, parseInput } from "./processing";
 
 const opTokens = "+-*/";
+type StoreType = string[];
+type InputStream = string;
+
+const OperationTokens = "+-*/".split("");
+const HEXTokens = "0123456789ABCDEF".split("");
+const Ans = "@";
+const SpecialTokens = [Ans,];
+
+const AllTokens = [].concat(OperationTokens, HEXTokens, SpecialTokens);
+
 interface ICalculatorInput {
 	stream?: string;
 	tokens?: StoreType;
@@ -25,6 +35,106 @@ interface IUserData {
 	id: string;
 	history: ICalculatorOutput;
 }
+
+export class Calculator {
+	private store: StoreType;
+
+	get current(){
+		let c = this.store.length-1;
+		if(c < 0){
+			c = 0;
+		}
+		return this.store[c];
+	}
+	private set current(x:string){
+		let c = this.store.length-1;
+		if(c < 0){
+			c = 0;
+		}
+		this.store[c] = x;
+	}
+
+	constructor(store: StoreType = []) {
+		this.load(store);
+	}
+
+	load(store: StoreType){
+		if(!store) return;
+		this.store = store.slice();
+	}
+
+	appendCurrentToken(x:string){
+		if(!x) return;
+		x = x.toUpperCase();
+
+		let curr = this.current;
+		
+		switch(true){
+			case (!curr):
+				curr = "";
+				break;
+			case (curr == Ans):
+				return;
+			case (OperationTokens.includes(curr)):
+				this.store.push("");
+				curr = this.current;
+				break;
+		}
+
+		curr += x;
+		this.current = parseInput(curr);
+	}
+
+	addToken(token:string){
+		if(!token.length) return;
+		token = token.toUpperCase();
+
+		//check if token is included
+		if(!AllTokens.includes(token)){
+			//check if token is a HEX number with valid characters
+			for(let char of token){
+				if(!HEXTokens.includes(char)){
+					return;
+				}
+			}
+		}
+
+		if(OperationTokens.includes(this.current)){
+			this.current = token;
+		}else if(SpecialTokens.includes(token)){
+			this.store.push(token);
+		}else if(OperationTokens.includes(token)){
+			this.store.push(token);
+		}else{
+			this.store.push(parseInput(token));
+		}
+	}
+
+	processStream(stream:InputStream){
+		for(let i=0; i<stream.length; i++){
+			
+			let char = stream[i]?.toUpperCase();
+
+			if(HEXTokens.includes(char)){
+				this.appendCurrentToken(char);
+			}else if(OperationTokens.includes(char) && this.current){
+				this.addToken(char);
+			}else if(SpecialTokens.includes(char)){
+				switch(char){
+					case Ans:
+						this.addToken(char);
+						break;
+				}
+			}
+		}
+	}
+	
+	getStore(){
+		return this.store.slice();
+	}
+
+}
+
 function isOperatorToken(token: string) {
 	return opTokens.includes(token);
 }
