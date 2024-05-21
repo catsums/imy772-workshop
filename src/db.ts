@@ -7,6 +7,8 @@ dotenv.config({
 	path: "./src/db.dev.env",
 });
 
+let DB_NAME = process.env.NODE_ENV === "development" ? process.env.TEST_DB_NAME : process.env.DB_NAME;
+
 export interface ICalculatorInput {
 	stream?: string;
 	tokens?: StoreType;
@@ -44,7 +46,7 @@ const DB : {
 	client: null,
 	conn: null,
 	config: {
-		dbname: process.env.DB_NAME || "",
+		dbname: DB_NAME || "",
 		url: process.env.DB_URL || "",
 	},
 	connected: false,
@@ -99,7 +101,7 @@ export async function getDBData(coll:string, query:any, opts?, db=DB.conn.db(DB.
 	return res;
 }
 export async function updateDBData(coll:string, query:any, data:any, db=DB.conn.db(DB.config.dbname)){
-	let res = await db.collection(coll).updateMany(data, query);
+	let res = await db.collection(coll).updateMany(query, data);
 
 	return res;
 }
