@@ -34,7 +34,7 @@ export interface IHistoryData {
 	lastModified: Date;
 }
 
-const DB : {
+export const DB : {
 	client: MongoClient;
 	conn: MongoClient;
 	connected: boolean;
@@ -66,6 +66,7 @@ if(DB.client){
 	});
 	DB.client.on("topologyClosed", ()=>{
 		DB.connected = false;
+		DB.conn = null;
 	});
 }
 
