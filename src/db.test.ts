@@ -1,6 +1,7 @@
 
 import {describe, test, expect, jest} from "@jest/globals";
 import _ from "lodash";
+import { Db, MongoClient } from "mongodb";
 
 import {
 	connectDB, closeDB,
@@ -21,16 +22,16 @@ function randomID(len:number=8){
 	return id;
 }
 
-describe("Connect to DB and Close DB", () => {
-	test("Open and close DB", async () => {
+describe("Connect to DB and test functionality", () => {
+	let dbClient:MongoClient;
+	let db:Db;
+
+	test("Open DB", async () => {
 		try{
-			let db = await connectDB();
+			dbClient = await connectDB();
+			db = dbClient.db();
 
-			expect(connectDB).toReturn();
-
-			await timeout(3000);
-
-			await closeDB();
+			expect(db).toBeDefined();
 		}catch(err){
 			throw err;
 		}
@@ -38,8 +39,7 @@ describe("Connect to DB and Close DB", () => {
 
 	test("Test create history", async () => {
 		try{
-			let db = await connectDB();
-
+			dbClient = await connectDB();
 			let id = randomID();
 
 			await createHistory(id);
@@ -54,16 +54,13 @@ describe("Connect to DB and Close DB", () => {
 			expect(res).toEqual(expected);
 
 			await resetDB();
-
-			await closeDB();
 		}catch(err){
 			throw err;
 		}
 	})
 	test("Test insert history", async () => {
 		try{
-			let db = await connectDB();
-
+			dbClient = await connectDB();
 			let id = randomID();
 
 			await createHistory(id);
@@ -86,8 +83,6 @@ describe("Connect to DB and Close DB", () => {
 			expect(res).toEqual(expected);
 
 			await resetDB();
-
-			await closeDB();
 		}catch(err){
 			throw err;
 		}
@@ -95,8 +90,7 @@ describe("Connect to DB and Close DB", () => {
 
 	test("Test Fetch History", async () => {
 		try{
-			let db = await connectDB();
-
+			dbClient = await connectDB();
 			let id = randomID();
 
 			await createHistory(id);
@@ -131,8 +125,6 @@ describe("Connect to DB and Close DB", () => {
 			expect(res).toEqual(expected);
 
 			await resetDB();
-
-			await closeDB();
 		}catch(err){
 			throw err;
 		}
@@ -141,8 +133,7 @@ describe("Connect to DB and Close DB", () => {
 	
 	test("Test Reset History", async () => {
 		try{
-			let db = await connectDB();
-
+			dbClient = await connectDB();
 			let id = randomID();
 
 			await createHistory(id);
@@ -164,11 +155,25 @@ describe("Connect to DB and Close DB", () => {
 			expect(res).toEqual(expected);
 
 			await resetDB();
-
-			await closeDB();
 		}catch(err){
 			throw err;
 		}
 	})
+	test("Close DB", async () => {
+		try{
+			dbClient = await connectDB();
 
-})
+			let closed = false;
+			dbClient.on('topologyClosed',()=>{
+				closed = true;
+			});
+			await closeDB();
+
+			expect(closed).toBe(true);
+
+		}catch(err){
+			throw err;
+		}
+	});
+
+});
