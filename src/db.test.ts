@@ -8,6 +8,7 @@ import {
 	insertDBData, getDBData, updateDBData, deleteDBData,
 	createHistory, retrieveHistory, appendHistory, deleteHistory, clearHistory,
 	clearCollection, resetDB,
+	DB
 } from "./db"
 
 function timeout(ms) {
@@ -31,7 +32,7 @@ describe("Connect to DB and test functionality", () => {
 			dbClient = await connectDB();
 			db = dbClient.db();
 
-			expect(db).toBeDefined();
+			expect(DB.conn).toBeTruthy();
 		}catch(err){
 			throw err;
 		}
@@ -117,10 +118,10 @@ describe("Connect to DB and test functionality", () => {
 
 			let res = await retrieveHistory(id);
 
-			let expected = [{
+			let expected = {
 				id: id,
 				history: data,
-			}];
+			};
 			
 			expect(res).toEqual(expected);
 
@@ -169,7 +170,7 @@ describe("Connect to DB and test functionality", () => {
 			});
 			await closeDB();
 
-			expect(closed).toBe(true);
+			expect(DB.conn).toBeFalsy();
 
 		}catch(err){
 			throw err;
