@@ -22,8 +22,8 @@ export interface ICalculatorInputTokens extends ICalculatorInput {
 export interface ICalculatorOutput {
 	input: string;
 	output: string;
-	inTime: Date;
-	outTime: Date;
+	inTime: number;
+	outTime: number;
 }
 
 export interface IHistoryData {
@@ -39,9 +39,6 @@ const DB : {
 	config : {
 		dbname: string;
 		url: string;
-		user: string;
-		pass: string;
-		cluster: string;
 	}
 } = {
 	client: null,
@@ -49,9 +46,6 @@ const DB : {
 	config: {
 		dbname: process.env.DB_NAME || "",
 		url: process.env.DB_URL || "",
-		user: process.env.DB_USERNAME || "",
-		pass: process.env.DB_PASSWORD || "",
-		cluster: process.env.DB_CLUSTER || "",
 	},
 	connected: false,
 }
@@ -92,20 +86,25 @@ export async function insertDBData(coll:string, data:any, db=DB.conn.db(DB.confi
 
 	return res;
 }
-export async function getDBData(coll:string, query:any, db=DB.conn.db(DB.config.dbname)){
-	let res = await db.collection(coll).findOne(query, {
-		projection: { _id: 0}
-	});
+export async function getDBData(coll:string, query:any, opts?, db=DB.conn.db(DB.config.dbname)){
+	if(!opts){
+		opts = {
+			projection: {
+				_id: 0,
+			}
+		}
+	}
+	let res = await db.collection(coll).findOne(query, opts);
 
 	return res;
 }
 export async function updateDBData(coll:string, query:any, data:any, db=DB.conn.db(DB.config.dbname)){
-	let res = await db.collection(coll).updateOne(data, query);
+	let res = await db.collection(coll).updateMany(data, query);
 
 	return res;
 }
 export async function deleteDBData(coll:string, query:any, db=DB.conn.db(DB.config.dbname)){
-	let res = await db.collection(coll).deleteOne(query);
+	let res = await db.collection(coll).deleteMany(query);
 
 	return res;
 }
@@ -126,7 +125,12 @@ export async function createHistory(id:string, db=DB.conn.db(DB.config.dbname)){
 	return false;
 }
 export async function retrieveHistory(id:string, db=DB.conn.db(DB.config.dbname)){
-	let res = await getDBData(collections.history, {id: id}, db);
+	let res = await getDBData(collections.history, {id: id}, {
+		projection: {
+			_id: 0,
+			lastModified: 0,
+		}
+	}, db);
 
 	return (res as unknown) as IHistoryData;
 }
@@ -177,8 +181,12 @@ export async function clearCollection(coll:string, db=DB.conn.db(DB.config.dbnam
 
 	return res;
 }
-export async function resetDB(coll:string, db=DB.conn.db(DB.config.dbname)){
+export async function resetDB(db=DB.conn.db(DB.config.dbname)){
 	let res = db.dropDatabase();
 
 	return res;
+}
+
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
