@@ -2,19 +2,12 @@
 import {describe, test, expect, jest} from "@jest/globals";
 import _ from "lodash";
 
-let closeDB = jest.fn(async () => {});
-let connectDB = jest.fn(async () => {
-	return {
-		close: closeDB,
-	}
-});
-
-let createHistory = jest.fn(async (data,db) => {});
-let appendHistory = jest.fn(async (data,db) => {});
-let getHistory = jest.fn(async (query,db) => {return ["3"]});
-let clearHistory = jest.fn(async (query,db) => {return ["3"]});
-let getDBData = jest.fn(async (coll,db) => { return {"1":["3"]}});
-let resetDB = jest.fn(async (db) => {});
+import {
+	connectDB, closeDB,
+	insertDBData, getDBData, updateDBData, deleteDBData,
+	createHistory, retrieveHistory, appendHistory, deleteHistory, clearHistory,
+	clearCollection, resetDB,
+} from "./db"
 
 function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -29,16 +22,15 @@ function randomID(len:number=8){
 }
 
 describe("Connect to DB and Close DB", () => {
-	let db;
 	test("Open and close DB", async () => {
 		try{
-			db = await connectDB();
+			let db = await connectDB();
 
 			expect(connectDB).toReturn();
 
 			await timeout(3000);
 
-			db.close();
+			await closeDB();
 		}catch(err){
 			throw err;
 		}
@@ -46,65 +38,56 @@ describe("Connect to DB and Close DB", () => {
 
 	test("Test create history", async () => {
 		try{
-			db = await connectDB();
+			let db = await connectDB();
 
 			let id = randomID();
-			let time = new Date().getTime();
 
-			await createHistory({
-				id: id,
-			}, db);
-			let res = await getDBData('history',db);
+			await createHistory(id);
 
-			let expected = [{
+			let res = await retrieveHistory(id);
+
+			let expected = {
 				id: id,
-				history: [
-				],
-			}];
+				history: [],
+			};
 			
 			expect(res).toEqual(expected);
 
-			resetDB(db);
+			await resetDB();
 
-			db.close();
+			await closeDB();
 		}catch(err){
 			throw err;
 		}
 	})
 	test("Test insert history", async () => {
 		try{
-			db = await connectDB();
+			let db = await connectDB();
 
 			let id = randomID();
-			let time = new Date().getTime();
 
-			await createHistory({
-				id: id,
-			}, db);
-			await appendHistory({
-				id: id,
+			await createHistory(id);
+
+			let data = {
 				input: "F+B",
 				output: "1A",
-				time: time,
-			}, db);
-			let res = await getDBData('history',db);
+				inTime: 0,
+				outTime: 1,
+			};
 
-			let expected = [{
+			await appendHistory(id, data);
+			let res = await retrieveHistory(id);
+
+			let expected = {
 				id: id,
-				history: [
-					{
-						input: "F+B",
-						output: "1A",
-						time: time,
-					},
-				],
-			}];
+				history: [ data ],
+			};
 			
 			expect(res).toEqual(expected);
 
-			resetDB(db);
+			await resetDB();
 
-			db.close();
+			await closeDB();
 		}catch(err){
 			throw err;
 		}
@@ -112,47 +95,44 @@ describe("Connect to DB and Close DB", () => {
 
 	test("Test Fetch History", async () => {
 		try{
-			db = await connectDB();
+			let db = await connectDB();
 
 			let id = randomID();
-			let time = new Date().getTime();
 
-			await createHistory({
-				id: id
-			}, db);
-			await appendHistory({
-				id: id,
-				input: "C-1",
-				output: "B",
-				time: time,
-			}, db);
-			await appendHistory({
-				id: id,
-				input: "F2+4",
-				output: "F4",
-				time: time,
-			}, db);
-			await appendHistory({
-				id: id,
-				input: "@-1",
-				output: "F3",
-				time: time,
-			}, db);
+			await createHistory(id);
+			let data = [
+				{
+					input: "C-1",
+					output: "B",
+					inTime: 1, outTime: 2,
+				},
+				{
+					input: "F2+4",
+					output: "F4",
+					inTime: 3, outTime: 4,
+				},
+				{
+					input: "@-1",
+					output: "F3",
+					inTime: 5, outTime: 6,
+				}
+			]
+			for(let d of data){
+				await appendHistory(id,d);
+			}
 
-			let res = await getHistory({
-				id: id,
-			}, db);
+			let res = await retrieveHistory(id);
 
 			let expected = [{
 				id: id,
-				history: [],
+				history: data,
 			}];
 			
 			expect(res).toEqual(expected);
 
-			resetDB(db);
+			await resetDB();
 
-			db.close();
+			await closeDB();
 		}catch(err){
 			throw err;
 		}
@@ -161,37 +141,31 @@ describe("Connect to DB and Close DB", () => {
 	
 	test("Test Reset History", async () => {
 		try{
-			db = await connectDB();
+			let db = await connectDB();
 
 			let id = randomID();
-			let time = new Date().getTime();
 
-			await createHistory({
-				id: id
-			}, db);
-			await appendHistory({
-				id: id,
+			await createHistory(id);
+			await appendHistory(id, {
 				input: "C-1",
 				output: "B",
-				time: time,
-			}, db);
+				inTime: 1, outTime: 2,
+			},);
 
-			await clearHistory({
-				id: id,
-			}, db);
+			await clearHistory(id);
 
-			let res = await getDBData('history',db);
+			let res = await retrieveHistory(id);
 
-			let expected = [{
+			let expected = {
 				id: id,
 				history: [],
-			}];
+			};
 			
 			expect(res).toEqual(expected);
 
-			resetDB(db);
+			await resetDB();
 
-			db.close();
+			await closeDB();
 		}catch(err){
 			throw err;
 		}
