@@ -138,4 +138,17 @@ describe("Access API functions", () => {
 		expect(actual).toBe(expected);
 
 	});
+	test("Test close Socket", async () => {
+		let res = await new Promise((resolve, reject) => {
+
+			socket.emit("close","");
+	
+			socket.on("disconnect", (str:string)=>{
+				resolve(true);
+			});
+		});
+
+		expect(res).toBe(true);
+
+	});
 })
