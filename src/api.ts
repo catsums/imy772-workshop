@@ -1,5 +1,5 @@
 
-import socketIO from "socket.io";
+import { Server, Socket } from "socket.io";
 import express from "express";
 import path from "path";
 import { appendHistory, clearHistory, closeDB, connectDB, createHistory, retrieveHistory } from "./db";
@@ -11,13 +11,17 @@ const app = express();
 const port = process.env.PORT || 8081;
 const server = http.createServer(app);
 
-const io = new socketIO.Server(server);
+const io = new Server(server);
 
-const clients = new Map<string, socketIO.Socket>();
+const clients = new Map<string, Socket>();
 
 io.on("connection", (socket) => {
 	
 	clients.set(socket.id, socket);
+
+	socket.emit("Open", {
+		time: Date.now(),
+	})
 
 	socket.on("Create", async ({id})=>{
 		if(!id){
