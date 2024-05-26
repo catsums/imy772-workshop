@@ -9,7 +9,7 @@ export const HEXTokens = "0123456789ABCDEF".split("");
 export const SpecialToken = {
 	Ans: "@",
 }
-export const SpecialTokens = Object.values(SpecialToken);;
+export const SpecialTokens = Object.values(SpecialToken);
 
 export const AllTokens = [].concat(OperationTokens, HEXTokens, SpecialTokens);
 
