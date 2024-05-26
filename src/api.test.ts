@@ -4,35 +4,34 @@ import _ from "lodash";
 
 import { io, Socket } from "socket.io-client";
 
-const port = process.env.PORT || 8081;
-const testURL = `http://localhost:${port}/`;
-interface ISock {
-	emit: jest.Mock<(ev:string,data?:any)=>void>;
-	on: jest.Mock<(ev:string,func:(str:any)=>void)=>void>;
-}
+import {app, changePort, clients} from "./api";
 
-let socketOpen = jest.fn((url:string)=>{
-	return {
-		emit: jest.fn((ev:string, data?:any)=>{
-			console.log(JSON.parse(data));
-		}),
-		on: jest.fn((ev:string, func:(str:any)=>void)=>{
-			func('{id:123}');
-		}),
-	};
-});
+let port = 8082;
+
+const testURL = `http://localhost:${port}/`;
 
 describe("Access API functions", () => {
 	let socket:Socket;
 	let id = "Abcd1234";
 
+	test("Test open server", async () => {
+		let res = await new Promise((resolve, reject) => {
+			changePort(port, async () => {
+				console.log(`Test Listening on port ${port}...`);
+				resolve(true);
+			})
+		});
+
+		expect(res).toBe(true);
+	});
+
 	test("Test open and connect socket", async() => {
 		
 		let res = await new Promise((resolve, reject) => {
 			socket = io(testURL);
-	
-			socket.on("Open", (res)=>{
-				resolve(res);
+			
+			socket.on("connect", ()=>{
+				resolve(true);
 			});
 		});
 
