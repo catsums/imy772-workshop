@@ -20,11 +20,11 @@ changePort(PORT, () => {
 	console.log(`Listening on Port: ${PORT}`);
 });
 
-export const io = new Server(server);
+export const ioServer = new Server(server);
 
 export const clients = new Map<string, Socket>();
 
-io.on("connection", (socket) => {
+ioServer.on("connection", (socket) => {
 
 	let socketID = socket.id;
 	
@@ -157,13 +157,13 @@ io.on("connection", (socket) => {
 		return;
 	})
 
-	socket.on("disconnect", async (reason)=>{
+	socket.on("disconnect", (reason)=>{
 		clients.delete(socket.id);
 
 		console.log(`Client-${socketID} disconnected`)
 
 		if(clients.size <= 0){
-			await closeDB();
+			closeDB();
 		}
 	});
 
