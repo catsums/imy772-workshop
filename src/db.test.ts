@@ -1,5 +1,5 @@
 
-import {describe, test, expect, jest, beforeAll, afterAll} from "@jest/globals";
+import {describe, test, expect, jest, beforeAll, beforeEach, afterAll, afterEach} from "@jest/globals";
 import _ from "lodash";
 import { Db, MongoClient } from "mongodb";
 
@@ -10,19 +10,16 @@ import {
 	insertDBData, getDBData, updateDBData, deleteDBData,
 	createHistory, retrieveHistory, appendHistory, deleteHistory, clearHistory,
 	clearCollection, resetDB,
-	DB
+	DB,
+	collections
 } from "./db"
+
+import {
+	randomID
+} from "@catsums/my";
 
 function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
-function randomID(len:number=8){
-	let id = "";
-	let alpha = "0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
-	for(let i=0;i<len;i++){
-		id += alpha[_.random(alpha.length)];
-	}
-	return id;
 }
 
 describe("Connect to DB and test functionality", () => {
@@ -40,7 +37,6 @@ describe("Connect to DB and test functionality", () => {
 	});
 	afterAll(async ()=>{
 		try{
-			await resetDB();
 			await closeDB();
 		}catch(err){
 			throw err;
@@ -49,7 +45,6 @@ describe("Connect to DB and test functionality", () => {
 
 	test("Test create history", async () => {
 		try{
-			dbClient = await connectDB();
 			let id = randomID();
 
 			await createHistory(id);
@@ -63,14 +58,14 @@ describe("Connect to DB and test functionality", () => {
 			
 			expect(res).toEqual(expected);
 
-			await resetDB();
+			await deleteDBData(collections.history, {});
+
 		}catch(err){
 			throw err;
 		}
 	})
 	test("Test insert history", async () => {
 		try{
-			dbClient = await connectDB();
 			let id = randomID();
 
 			await createHistory(id);
@@ -92,7 +87,7 @@ describe("Connect to DB and test functionality", () => {
 			
 			expect(res).toEqual(expected);
 
-			await resetDB();
+			await deleteDBData(collections.history, {});
 		}catch(err){
 			throw err;
 		}
@@ -100,7 +95,6 @@ describe("Connect to DB and test functionality", () => {
 
 	test("Test Fetch History", async () => {
 		try{
-			dbClient = await connectDB();
 			let id = randomID();
 
 			await createHistory(id);
@@ -134,16 +128,14 @@ describe("Connect to DB and test functionality", () => {
 			
 			expect(res).toEqual(expected);
 
-			await resetDB();
+			await deleteDBData(collections.history, {});
 		}catch(err){
 			throw err;
 		}
 	})
 
-	
 	test("Test Reset History", async () => {
 		try{
-			dbClient = await connectDB();
 			let id = randomID();
 
 			await createHistory(id);
@@ -163,8 +155,8 @@ describe("Connect to DB and test functionality", () => {
 			};
 			
 			expect(res).toEqual(expected);
-
-			await resetDB();
+			
+			await deleteDBData(collections.history, {});
 		}catch(err){
 			throw err;
 		}
