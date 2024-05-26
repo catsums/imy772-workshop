@@ -51,7 +51,7 @@ export const DB : {
 	connected: false,
 }
 
-const collections = {
+export const collections = {
 	history: "history",
 }
 
@@ -179,12 +179,12 @@ export async function clearHistory(id:string, db=DB.conn.db(DB.config.dbname)){
 }
 
 export async function clearCollection(coll:string, db=DB.conn.db(DB.config.dbname)){
-	let res = db.collection(coll).drop();
+	let res = await db.collection(coll).drop();
 
 	return res;
 }
 export async function resetDB(db=DB.conn.db(DB.config.dbname)){
-	let res = db.dropDatabase();
+	let res = await db.dropDatabase();
 
 	return res;
 }
