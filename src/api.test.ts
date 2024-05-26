@@ -10,6 +10,11 @@ let port = 8082;
 
 const testURL = `http://localhost:${port}/`;
 
+
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 describe("Access API functions", () => {
 	let socket:Socket;
 	let id = "Abcd1234";
