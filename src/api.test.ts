@@ -1,10 +1,10 @@
 
-import {describe, test, expect, jest} from "@jest/globals";
+import {describe, test, expect, jest, beforeAll, afterAll} from "@jest/globals";
 import _ from "lodash";
 
 import { io, Socket } from "socket.io-client";
 
-import {app, changePort, clients} from "./api";
+import {app, changePort, clients, server, ioServer} from "./api";
 
 let port = 8082;
 
@@ -19,27 +19,31 @@ describe("Access API functions", () => {
 	let socket:Socket;
 	let id = "Abcd1234";
 
-	test("Test open server", async () => {
-		let res = await new Promise((resolve, reject) => {
-			changePort(port, async () => {
-				console.log(`Test Listening on port ${port}...`);
-				resolve(true);
-			})
-		});
-
-		expect(res).toBe(true);
+	beforeAll(() => {
+		server.close();
+		server.listen(port, ()=>{
+			console.log(`Test Listening on Port ${port}`);
+		})
 	});
 
-	test("Test open and connect socket", async() => {
+	afterAll(() => {
+		if(socket.connected){
+			socket.disconnect();
+		}
+
+		ioServer.close();
+		server.close();
+	});
+
+	test("Test open and connect socket", async () => {
 		
-		let res = await new Promise((resolve, reject) => {
-			socket = io(testURL);
-			
+		socket = io(testURL);
+		
+		let res = await new Promise((resolve, reject)=>{
 			socket.on("connect", ()=>{
 				resolve(true);
 			});
-		});
-
+		})
 		expect(res).toBeTruthy();
 	});
 	test("Test creating Data using API", async () => {
