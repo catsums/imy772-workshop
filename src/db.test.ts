@@ -3,6 +3,8 @@ import {describe, test, expect, jest, beforeAll, afterAll} from "@jest/globals";
 import _ from "lodash";
 import { Db, MongoClient } from "mongodb";
 
+process.env.NODE_ENV = "development";
+
 import {
 	connectDB, closeDB,
 	insertDBData, getDBData, updateDBData, deleteDBData,

@@ -2,6 +2,8 @@
 import {describe, test, expect, jest, beforeAll, afterAll} from "@jest/globals";
 import _ from "lodash";
 
+process.env.NODE_ENV = "development";
+
 import { io, Socket } from "socket.io-client";
 
 import {app, changePort, clients, server, ioServer, DBdelete, DBreset} from "./api";

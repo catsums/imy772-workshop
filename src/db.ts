@@ -7,8 +7,7 @@ dotenv.config({
 	path: "./src/db.dev.env",
 });
 
-let DB_NAME = process.env.NODE_ENV === "development" ? process.env.TEST_DB_NAME : process.env.DB_NAME;
-
+let DB_NAME = process.env.NODE_ENV === "production" ? process.env.DB_NAME : process.env.TEST_DB_NAME;
 export interface ICalculatorInput {
 	stream?: string;
 	tokens?: StoreType;
