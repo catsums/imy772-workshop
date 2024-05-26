@@ -128,3 +128,8 @@ dist
 
 #vscode
 .vscode/
+
+# dotenv environment variables file
+*.env
+*.development.env
+*.env.test
