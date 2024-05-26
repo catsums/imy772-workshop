@@ -4,7 +4,7 @@ import _ from "lodash";
 
 import { io, Socket } from "socket.io-client";
 
-import {app, changePort, clients, server, ioServer} from "./api";
+import {app, changePort, clients, server, ioServer, DBdelete, DBreset} from "./api";
 
 let port = 8082;
 
@@ -26,11 +26,11 @@ describe("Access API functions", () => {
 		})
 	});
 
-	afterAll(() => {
+	afterAll(async () => {
+		await DBdelete(id);
 		if(socket.connected){
 			socket.disconnect();
 		}
-
 		ioServer.close();
 		server.close();
 	});

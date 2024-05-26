@@ -3,6 +3,7 @@ import { Server, Socket } from "socket.io";
 import express from "express";
 import path from "path";
 import { appendHistory, clearHistory, closeDB, connectDB, createHistory, retrieveHistory } from "./db";
+import { appendHistory, clearHistory, closeDB, connectDB, createHistory, retrieveHistory, deleteHistory, resetDB } from "./db";
 import http from 'http';
 
 import * as MY from "@catsums/my";
@@ -23,6 +24,25 @@ changePort(PORT, () => {
 export const ioServer = new Server(server);
 
 export const clients = new Map<string, Socket>();
+
+export async function DBreset(){
+	let dbClient = await connectDB();
+	if(!dbClient){
+		return false;
+	}
+	
+	await resetDB();
+
+	return true;
+}
+export async function DBdelete(id:string){
+	let dbClient = await connectDB();
+	if(!dbClient){
+		return false;
+	}
+	
+	return await deleteHistory(id);
+}
 
 ioServer.on("connection", (socket) => {
 
