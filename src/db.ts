@@ -4,7 +4,7 @@ import { InputStream, StoreType } from "./storage";
 
 import dotenv from "dotenv";
 dotenv.config({
-	path: "./src/db.dev.env",
+	path: "./db.dev.env",
 });
 
 let DB_NAME = process.env.NODE_ENV === "production" ? process.env.DB_NAME : process.env.TEST_DB_NAME;
