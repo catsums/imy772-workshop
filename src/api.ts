@@ -7,23 +7,33 @@ import http from 'http';
 
 import * as MY from "@catsums/my";
 
-const app = express();
-const port = process.env.PORT || 8081;
-const server = http.createServer(app);
+export const app = express();
+export const PORT = Number(process.env.PORT) || 8081;
+export const server = http.createServer(app);
 
-const io = new Server(server);
 
-const clients = new Map<string, Socket>();
+export function changePort(newPort:number, callback:()=>void){
+	server.close();
+	server.listen(newPort, callback);
+}
+changePort(PORT, () => {
+	console.log(`Listening on Port: ${PORT}`);
+});
+
+export const io = new Server(server);
+
+export const clients = new Map<string, Socket>();
 
 io.on("connection", (socket) => {
+
+	let socketID = socket.id;
 	
-	clients.set(socket.id, socket);
+	clients.set(socketID, socket);
 
-	socket.emit("Open", {
-		time: Date.now(),
-	})
+	console.log(`New Client: ${socketID}`)
 
-	socket.on("Create", async ({id})=>{
+	socket.on("Create", async ({id, sync})=>{
+		console.log(`Client-${socketID} Create`);
 		if(!id){
 			socket.emit("Create", {
 				success: false,
@@ -47,10 +57,12 @@ io.on("connection", (socket) => {
 		socket.emit("Create", {
 			success: res,
 			message: (res ? `Created History` : `Failed to create history`),
-			data: { id }
+			data: { id },
+			sync,
 		})
 		return;
-	}).on("Append", async ({id, data})=>{
+	}).on("Append", async ({id, data, sync})=>{
+		console.log(`Client-${socketID} Append`);
 		if(!id){
 			socket.emit("Append", {
 				success: false,
@@ -75,9 +87,11 @@ io.on("connection", (socket) => {
 			success: res,
 			message: (res ? `Appended History` : `Failed to append history`),
 			data: { id },
+			sync,
 		})
 		return;
-	}).on("Get", async ({id, data})=>{
+	}).on("Get", async ({id, sync})=>{
+		console.log(`Client-${socketID} Get`);
 		if(!id){
 			socket.emit("Get", {
 				success: false,
@@ -103,9 +117,12 @@ io.on("connection", (socket) => {
 			success: res,
 			message: (res ? `Got History` : `Failed to get history`),
 			data: { id:history.id, history: history.history },
+			sync,
 		})
 		return;
-	}).on("Clear", async ({id, data})=>{
+	}).on("Clear", async ({id, sync})=>{
+		console.log(`Client-${socketID} Clear`);
+
 		if(!id){
 			socket.emit("Clear", {
 				success: false,
@@ -130,15 +147,20 @@ io.on("connection", (socket) => {
 			success: res,
 			message: (res ? `Deleted History` : `Failed to delete history`),
 			data: { id },
+			sync,
 		})
 		return;
-	}).on("Close", async ({id, data})=>{
+	}).on("Close", async ()=>{
+		console.log(`Client-${socketID} Close`);
+
 		socket.disconnect();
 		return;
 	})
 
-	socket.on("disconnect", async (data)=>{
+	socket.on("disconnect", async (reason)=>{
 		clients.delete(socket.id);
+
+		console.log(`Client-${socketID} disconnected`)
 
 		if(clients.size <= 0){
 			await closeDB();
