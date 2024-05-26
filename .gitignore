@@ -125,3 +125,11 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+#vscode
+.vscode/
+
+# dotenv environment variables file
+*.env
+*.development.env
+*.env.test
