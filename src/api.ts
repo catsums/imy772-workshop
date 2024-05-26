@@ -2,7 +2,6 @@
 import { Server, Socket } from "socket.io";
 import express from "express";
 import path from "path";
-import { appendHistory, clearHistory, closeDB, connectDB, createHistory, retrieveHistory } from "./db";
 import { appendHistory, clearHistory, closeDB, connectDB, createHistory, retrieveHistory, deleteHistory, resetDB } from "./db";
 import http from 'http';
 
@@ -163,7 +162,7 @@ ioServer.on("connection", (socket) => {
 
 		let res = await clearHistory(id);
 
-		socket.emit("Get", {
+		socket.emit("Clear", {
 			success: res,
 			message: (res ? `Deleted History` : `Failed to delete history`),
 			data: { id },
