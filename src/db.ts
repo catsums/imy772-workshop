@@ -7,8 +7,7 @@ dotenv.config({
 	path: "./src/db.dev.env",
 });
 
-let DB_NAME = process.env.NODE_ENV === "development" ? process.env.TEST_DB_NAME : process.env.DB_NAME;
-
+let DB_NAME = process.env.NODE_ENV === "production" ? process.env.DB_NAME : process.env.TEST_DB_NAME;
 export interface ICalculatorInput {
 	stream?: string;
 	tokens?: StoreType;
@@ -52,7 +51,9 @@ export const DB : {
 	connected: false,
 }
 
-const collections = {
+console.log(`DB_NAME: ${DB.config.dbname}`);
+
+export const collections = {
 	history: "history",
 }
 
@@ -180,12 +181,12 @@ export async function clearHistory(id:string, db=DB.conn.db(DB.config.dbname)){
 }
 
 export async function clearCollection(coll:string, db=DB.conn.db(DB.config.dbname)){
-	let res = db.collection(coll).drop();
+	let res = await db.collection(coll).drop();
 
 	return res;
 }
 export async function resetDB(db=DB.conn.db(DB.config.dbname)){
-	let res = db.dropDatabase();
+	let res = await db.dropDatabase();
 
 	return res;
 }

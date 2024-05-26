@@ -1,6 +1,8 @@
 
 import {describe, test, expect, jest} from "@jest/globals";
 
+process.env.NODE_ENV = "development";
+
 import { processStore, Calculator } from "./storage";
 import { CalcError } from "./calc_errors";
 

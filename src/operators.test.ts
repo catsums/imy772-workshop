@@ -1,6 +1,8 @@
 
 import {describe, test, expect, jest} from "@jest/globals";
 
+process.env.NODE_ENV = "development";
+
 import { Operators } from "./operators";
 import { CalcError, InfinityCalcError, InvalidDecCalcError, InvalidHexCalcError, NegativeValueCalcError, UndefinedCalcError } from "./calc_errors";
 
