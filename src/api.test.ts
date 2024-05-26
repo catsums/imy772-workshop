@@ -60,7 +60,7 @@ describe("Access API functions", () => {
 			});
 		});
 
-		expect(actual).toBe(expected);
+		expect(actual).toEqual(expected);
 
 	});
 	test("Test set Data using API", async () => {
@@ -94,7 +94,7 @@ describe("Access API functions", () => {
 			});
 		});
 
-		expect(actual).toBe(expected);
+		expect(actual).toEqual(expected);
 
 	});
 	test("Test get Data using API", async () => {
@@ -130,7 +130,7 @@ describe("Access API functions", () => {
 			});
 		});
 
-		expect(actual).toBe(expected);
+		expect(actual).toEqual(expected);
 
 	});
 	test("Test clear Data using API", async () => {
@@ -158,7 +158,7 @@ describe("Access API functions", () => {
 			});
 		});
 
-		expect(actual).toBe(expected);
+		expect(actual).toEqual(expected);
 
 	});
 	test("Test close Socket", async () => {
