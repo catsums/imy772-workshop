@@ -51,6 +51,8 @@ export const DB : {
 	connected: false,
 }
 
+console.log(`DB_NAME: ${DB.config.dbname}`);
+
 export const collections = {
 	history: "history",
 }
