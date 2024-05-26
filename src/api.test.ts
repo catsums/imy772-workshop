@@ -2,6 +2,10 @@
 import {describe, test, expect, jest} from "@jest/globals";
 import _ from "lodash";
 
+import { io, Socket } from "socket.io-client";
+
+const port = process.env.PORT || 8081;
+const testURL = `http://localhost:${port}/`;
 interface ISock {
 	emit: jest.Mock<(ev:string,data?:any)=>void>;
 	on: jest.Mock<(ev:string,func:(str:any)=>void)=>void>;
@@ -19,27 +23,40 @@ let socketOpen = jest.fn((url:string)=>{
 });
 
 describe("Access API functions", () => {
-	let socket:ISock;
+	let socket:Socket;
 	let id = "Abcd1234";
-	test("Test open and connect socket", async() => {
-		socket = socketOpen("example.com");
 
-		expect(socketOpen).toBeCalled();
+	test("Test open and connect socket", async() => {
+		
+		let res = await new Promise((resolve, reject) => {
+			socket = io(testURL);
+	
+			socket.on("Open", (res)=>{
+				resolve(res);
+			});
+		});
+
+		expect(res).toBeTruthy();
 	});
 	test("Test creating Data using API", async () => {
+		let sync = {
+			time: Date.now(),
+		}
 		let expected = {
 			success: true,
 			message: "Created History",
 			data: {
 				id,
-			}
+			},
+			sync,
 		}
 
 		let actual = await new Promise((resolve, reject) => {
 
-			socket.emit("Create", {id});
+			socket.emit("Create", { id, sync});
 	
 			socket.on("Create", (res)=>{
+				if(res.sync.time != sync.time) return;
 				resolve(res);
 			});
 		});
@@ -48,12 +65,16 @@ describe("Access API functions", () => {
 
 	});
 	test("Test set Data using API", async () => {
+		let sync = {
+			time: Date.now(),
+		}
 		let expected = {
 			success: true,
 			message: "Appended History",
 			data: {
 				id,
-			}
+			},
+			sync,
 		}
 		let data = {
 			input: "F+B",
@@ -65,10 +86,11 @@ describe("Access API functions", () => {
 		let actual = await new Promise((resolve, reject) => {
 
 			socket.emit("Append", {
-				id, data,
+				id, data, sync,
 			});
 	
 			socket.on("Append", (res)=>{
+				if(res.sync.time != sync.time) return;
 				resolve(res);
 			});
 		});
@@ -77,6 +99,9 @@ describe("Access API functions", () => {
 
 	});
 	test("Test get Data using API", async () => {
+		let sync = {
+			time: Date.now(),
+		}
 		let expected = {
 			success: true,
 			message: "Got History",
@@ -90,16 +115,18 @@ describe("Access API functions", () => {
 						outTime: 1,
 					}
 				]
-			}
+			},
+			sync,
 		}
 
 		let actual = await new Promise((resolve, reject) => {
 
 			socket.emit("Get", {
-				id,
+				id, sync,
 			});
 	
 			socket.on("Get", (res)=>{
+				if(res.sync.time != sync.time) return;
 				resolve(res);
 			});
 		});
@@ -108,21 +135,26 @@ describe("Access API functions", () => {
 
 	});
 	test("Test clear Data using API", async () => {
+		let sync = {
+			time: Date.now(),
+		}
 		let expected = {
 			success: true,
 			message: "Deleted History",
 			data: {
 				id,
-			}
+			},
+			sync,
 		}
 
 		let actual = await new Promise((resolve, reject) => {
 
 			socket.emit("Clear", {
-				id,
+				id, sync,
 			});
 	
 			socket.on("Clear", (res)=>{
+				if(res.sync.time != sync.time) return;
 				resolve(res);
 			});
 		});
@@ -131,6 +163,9 @@ describe("Access API functions", () => {
 
 	});
 	test("Test close Socket", async () => {
+		let sync = {
+			time: Date.now(),
+		}
 		let res = await new Promise((resolve, reject) => {
 
 			socket.emit("Close");
