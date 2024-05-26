@@ -162,7 +162,9 @@ describe("Access API functions", () => {
 			});
 	
 			socket.on("Clear", (res)=>{
-				if(res.sync.time != sync.time) return;
+				if(res.sync.time != sync.time){
+					return;
+				}
 				resolve(res);
 			});
 		});
