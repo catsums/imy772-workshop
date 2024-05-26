@@ -3,16 +3,16 @@ import {describe, test, expect, jest} from "@jest/globals";
 import _ from "lodash";
 
 interface ISock {
-	emit: jest.Mock<(ev:string,data:string)=>void>;
-	on: jest.Mock<(ev:string,func:(str:string)=>void)=>void>;
+	emit: jest.Mock<(ev:string,data?:any)=>void>;
+	on: jest.Mock<(ev:string,func:(str:any)=>void)=>void>;
 }
 
 let socketOpen = jest.fn((url:string)=>{
 	return {
-		emit: jest.fn((ev:string, data:string)=>{
+		emit: jest.fn((ev:string, data?:any)=>{
 			console.log(JSON.parse(data));
 		}),
-		on: jest.fn((ev:string, func:(str:string)=>void)=>{
+		on: jest.fn((ev:string, func:(str:any)=>void)=>{
 			func('{id:123}');
 		}),
 	};
@@ -37,11 +37,9 @@ describe("Access API functions", () => {
 
 		let actual = await new Promise((resolve, reject) => {
 
-			socket.emit("Create", JSON.stringify({id}));
+			socket.emit("Create", {id});
 	
-			socket.on("Create", (str:string)=>{
-				let res = JSON.parse(str);
-				
+			socket.on("Create", (res)=>{
 				resolve(res);
 			});
 		});
@@ -66,13 +64,11 @@ describe("Access API functions", () => {
 
 		let actual = await new Promise((resolve, reject) => {
 
-			socket.emit("Append", JSON.stringify({
+			socket.emit("Append", {
 				id, data,
-			}));
+			});
 	
-			socket.on("Append", (str:string)=>{
-				let res = JSON.parse(str);
-				
+			socket.on("Append", (res)=>{
 				resolve(res);
 			});
 		});
@@ -99,13 +95,11 @@ describe("Access API functions", () => {
 
 		let actual = await new Promise((resolve, reject) => {
 
-			socket.emit("Get", JSON.stringify({
+			socket.emit("Get", {
 				id,
-			}));
+			});
 	
-			socket.on("Get", (str:string)=>{
-				let res = JSON.parse(str);
-				
+			socket.on("Get", (res)=>{
 				resolve(res);
 			});
 		});
@@ -124,13 +118,11 @@ describe("Access API functions", () => {
 
 		let actual = await new Promise((resolve, reject) => {
 
-			socket.emit("Clear", JSON.stringify({
+			socket.emit("Clear", {
 				id,
-			}));
+			});
 	
-			socket.on("Clear", (str:string)=>{
-				let res = JSON.parse(str);
-				
+			socket.on("Clear", (res)=>{
 				resolve(res);
 			});
 		});
@@ -141,9 +133,9 @@ describe("Access API functions", () => {
 	test("Test close Socket", async () => {
 		let res = await new Promise((resolve, reject) => {
 
-			socket.emit("close","");
+			socket.emit("Close");
 	
-			socket.on("disconnect", (str:string)=>{
+			socket.on("disconnect", (res)=>{
 				resolve(true);
 			});
 		});
