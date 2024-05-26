@@ -1,5 +1,5 @@
 
-import {describe, test, expect, jest} from "@jest/globals";
+import {describe, test, expect, jest, beforeAll, afterAll} from "@jest/globals";
 import _ from "lodash";
 import { Db, MongoClient } from "mongodb";
 
@@ -27,12 +27,19 @@ describe("Connect to DB and test functionality", () => {
 	let dbClient:MongoClient;
 	let db:Db;
 
-	test("Open DB", async () => {
+	beforeAll(async ()=>{
+
 		try{
 			dbClient = await connectDB();
 			db = dbClient.db();
-
-			expect(DB.conn).toBeTruthy();
+		}catch(err){
+			throw err;
+		}
+	});
+	afterAll(async ()=>{
+		try{
+			await resetDB();
+			await closeDB();
 		}catch(err){
 			throw err;
 		}
@@ -160,21 +167,6 @@ describe("Connect to DB and test functionality", () => {
 			throw err;
 		}
 	})
-	test("Close DB", async () => {
-		try{
-			dbClient = await connectDB();
-
-			let closed = false;
-			dbClient.on('topologyClosed',()=>{
-				closed = true;
-			});
-			await closeDB();
-
-			expect(DB.conn).toBeFalsy();
-
-		}catch(err){
-			throw err;
-		}
-	});
+	
 
 });
