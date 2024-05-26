@@ -36,7 +36,7 @@ describe("Connect to DB and test functionality", () => {
 			throw err;
 		}
 	});
-	afterAll(async (done)=>{
+	afterAll(async ()=>{
 		try{
 			await resetDB();
 			await closeDB();
