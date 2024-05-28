@@ -37,157 +37,169 @@ describe("Access API functions", () => {
 		server.close();
 	});
 
-	test("Test open and connect socket", async () => {
-		
-		socket = io(testURL);
-		
-		let res = await new Promise((resolve, reject)=>{
-			socket.on("connect", ()=>{
-				resolve(true);
-			});
-		})
-		expect(res).toBeTruthy();
+	describe("Testing Calculator API functions", () => {
+		//test caching current input
+		//test caching current tokens
+		//test calculate on server and return answer
+		//test clear current input
+		//test clear current tokens (all cache)
+		//test receive error
 	});
-	test("Test creating Data using API", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let expected = {
-			success: true,
-			message: "Created History",
-			data: {
-				id,
-			},
-			sync,
-		}
 
-		let actual = await new Promise((resolve, reject) => {
-
-			socket.emit("Create", { id, sync});
-	
-			socket.on("Create", (res)=>{
-				if(res.sync.time != sync.time) return;
-				resolve(res);
-			});
+	describe("Testing Database API functions", () => {
+		test("Test open and connect socket", async () => {
+			
+			socket = io(testURL);
+			
+			let res = await new Promise((resolve, reject)=>{
+				socket.on("connect", ()=>{
+					resolve(true);
+				});
+			})
+			expect(res).toBeTruthy();
 		});
-
-		expect(actual).toEqual(expected);
-
-	});
-	test("Test set Data using API", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let expected = {
-			success: true,
-			message: "Appended History",
-			data: {
-				id,
-			},
-			sync,
-		}
-		let data = {
-			input: "F+B",
-			output: "1A",
-			inTime: 0,
-			outTime: 1,
-		};
-
-		let actual = await new Promise((resolve, reject) => {
-
-			socket.emit("Append", {
-				id, data, sync,
+		test("Test creating Data using API", async () => {
+			let sync = {
+				time: Date.now(),
+			}
+			let expected = {
+				success: true,
+				message: "Created History",
+				data: {
+					id,
+				},
+				sync,
+			}
+	
+			let actual = await new Promise((resolve, reject) => {
+	
+				socket.emit("Create", { id, sync});
+		
+				socket.on("Create", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
 			});
 	
-			socket.on("Append", (res)=>{
-				if(res.sync.time != sync.time) return;
-				resolve(res);
-			});
+			expect(actual).toEqual(expected);
+	
 		});
-
-		expect(actual).toEqual(expected);
-
-	});
-	test("Test get Data using API", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let expected = {
-			success: true,
-			message: "Got History",
-			data: {
-				id,
-				history:[
-					{
-						input: "F+B",
-						output: "1A",
-						inTime: 0,
-						outTime: 1,
+		test("Test set Data using API", async () => {
+			let sync = {
+				time: Date.now(),
+			}
+			let expected = {
+				success: true,
+				message: "Appended History",
+				data: {
+					id,
+				},
+				sync,
+			}
+			let data = {
+				input: "F+B",
+				output: "1A",
+				inTime: 0,
+				outTime: 1,
+			};
+	
+			let actual = await new Promise((resolve, reject) => {
+	
+				socket.emit("Append", {
+					id, data, sync,
+				});
+		
+				socket.on("Append", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			});
+	
+			expect(actual).toEqual(expected);
+	
+		});
+		test("Test get Data using API", async () => {
+			let sync = {
+				time: Date.now(),
+			}
+			let expected = {
+				success: true,
+				message: "Got History",
+				data: {
+					id,
+					history:[
+						{
+							input: "F+B",
+							output: "1A",
+							inTime: 0,
+							outTime: 1,
+						}
+					]
+				},
+				sync,
+			}
+	
+			let actual = await new Promise((resolve, reject) => {
+	
+				socket.emit("Get", {
+					id, sync,
+				});
+		
+				socket.on("Get", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			});
+	
+			expect(actual).toEqual(expected);
+	
+		});
+		test("Test clear Data using API", async () => {
+			let sync = {
+				time: Date.now(),
+			}
+			let expected = {
+				success: true,
+				message: "Deleted History",
+				data: {
+					id,
+				},
+				sync,
+			}
+	
+			let actual = await new Promise((resolve, reject) => {
+	
+				socket.emit("Clear", {
+					id, sync,
+				});
+		
+				socket.on("Clear", (res)=>{
+					if(res.sync.time != sync.time){
+						return;
 					}
-				]
-			},
-			sync,
-		}
-
-		let actual = await new Promise((resolve, reject) => {
-
-			socket.emit("Get", {
-				id, sync,
+					resolve(res);
+				});
 			});
 	
-			socket.on("Get", (res)=>{
-				if(res.sync.time != sync.time) return;
-				resolve(res);
-			});
+			expect(actual).toEqual(expected);
+	
 		});
-
-		expect(actual).toEqual(expected);
-
-	});
-	test("Test clear Data using API", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let expected = {
-			success: true,
-			message: "Deleted History",
-			data: {
-				id,
-			},
-			sync,
-		}
-
-		let actual = await new Promise((resolve, reject) => {
-
-			socket.emit("Clear", {
-				id, sync,
+		test("Test close Socket", async () => {
+			let sync = {
+				time: Date.now(),
+			}
+			let res = await new Promise((resolve, reject) => {
+	
+				socket.emit("Close");
+		
+				socket.on("disconnect", (res)=>{
+					resolve(true);
+				});
 			});
 	
-			socket.on("Clear", (res)=>{
-				if(res.sync.time != sync.time){
-					return;
-				}
-				resolve(res);
-			});
-		});
-
-		expect(actual).toEqual(expected);
-
-	});
-	test("Test close Socket", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let res = await new Promise((resolve, reject) => {
-
-			socket.emit("Close");
+			expect(res).toBe(true);
 	
-			socket.on("disconnect", (res)=>{
-				resolve(true);
-			});
 		});
-
-		expect(res).toBe(true);
-
 	});
+
 })
