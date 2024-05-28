@@ -1,25 +1,120 @@
+
+///CSS Resets
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+* {
+	margin: 0;
+}
+
+body {
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+	display: block;
+	max-width: 100%;
+}
+
+input, button, textarea, select {
+	font: inherit;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+	overflow-wrap: break-word;
+}
+
+#root, #__next {
+	isolation: isolate;
+}
+
+///
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+
+.font-orbitron {
+	font-family: "Orbitron", sans-serif;
+	font-optical-sizing: auto;
+	// font-weight: <weight>;
+	font-style: normal;
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+	font-family: "Orbitron", "Calibri", sans-serif;
+
+	//vars
+	--c1: #0a090d;
+	--c2: #c589e8;
+	--c3: #85e2ff;
+	--c4: #004e89;
+	--c5: #5b35f2;
 }
 
-.fish {
-	height: auto;
+body {
+	margin: 0;
+	width: 100vw;
+	height: 100vh;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: #484064;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+
+::-webkit-scrollbar {
+	height: 0.5em;
+	// height: 8pt;
+	// width: 8pt;
+	box-sizing: content-box;
+}
+::-webkit-scrollbar-track {
+	box-sizing: content-box;
+}
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(90deg,#d5d5ff, #9188fd); 
+	border-radius: 8pt;
+	transition: all 0.5s;
+}
+::-webkit-scrollbar-thumb:active {
+	background: #d5d5ff;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+
+.calculator {
+	--shadow-color: #b6b3ff;
+	box-shadow: 0 1em var(--shadow-color);
 }
+
+.pushy {
+	--shade-color: #d9abff7c;
+	--shadow-color: #bdb7ff;
+	--light-color: #f5ebfcaa;
+
+	box-shadow: 0 0.4em var(--shadow-color);
+	box-sizing: border-box;
+	transition: all 0.2s;
+	padding: 0px;
+	user-select: none;
+	border: thin solid var(--shade-color);
+	
+	.pushy-inner {
+		border-radius: inherit;
+		box-shadow: inset 0 -1.25em var(--shade-color), inset 0 0.1em var(--light-color);
+		width: 100%;
+		height: 100%;
+	}
+	&:active {
+		border: thin solid var(--shadow-color);
+		box-shadow: initial;
+		translate: 0 0.4em;
+		padding: 0;
+
+		.pushy-inner {
+			box-shadow: inset 0 -1.25em var(--shade-color);
+		}
+	}
+}
+
+
