@@ -6,6 +6,7 @@ import { appendHistory, clearHistory, closeDB, connectDB, createHistory, retriev
 import http from 'http';
 
 import * as MY from "@catsums/my";
+import { StoreType, Calculator } from './storage';
 
 export const app = express();
 export const PORT = Number(process.env.PORT) || 8081;
@@ -21,7 +22,13 @@ changePort(PORT, () => {
 
 export const ioServer = new Server(server);
 
-export const clients = new Map<string, Socket>();
+export interface IClient {
+	id: string;
+	socket: Socket;
+	calculator:Calculator;
+}
+
+export const clients = new Map<string, IClient>();
 
 export async function DBreset(){
 	let dbClient = await connectDB();
@@ -44,14 +51,20 @@ export async function DBdelete(id:string){
 
 ioServer.on("connection", (socket) => {
 
-	let socketID = socket.id;
+	// let clientID = `${MY.randomString(4)}-${MY.randomString(4)}`;
+	let clientID = socket.id;
+	let client:IClient = {
+		id: clientID,
+		socket: socket,
+		calculator: new Calculator(),
+	}
 	
-	clients.set(socketID, socket);
+	clients.set(clientID, client);
 
-	console.log(`New Client: ${socketID}`)
+	console.log(`New Client: ${clientID}`)
 
 	socket.on("Create", async ({id, sync})=>{
-		console.log(`Client-${socketID} Create`);
+		console.log(`Client-${clientID} Create`);
 		if(!id){
 			socket.emit("Create", {
 				success: false,
@@ -80,7 +93,7 @@ ioServer.on("connection", (socket) => {
 		})
 		return;
 	}).on("Append", async ({id, data, sync})=>{
-		console.log(`Client-${socketID} Append`);
+		console.log(`Client-${clientID} Append`);
 		if(!id){
 			socket.emit("Append", {
 				success: false,
@@ -109,7 +122,7 @@ ioServer.on("connection", (socket) => {
 		})
 		return;
 	}).on("Get", async ({id, sync})=>{
-		console.log(`Client-${socketID} Get`);
+		console.log(`Client-${clientID} Get`);
 		if(!id){
 			socket.emit("Get", {
 				success: false,
@@ -139,7 +152,7 @@ ioServer.on("connection", (socket) => {
 		})
 		return;
 	}).on("Clear", async ({id, sync})=>{
-		console.log(`Client-${socketID} Clear`);
+		console.log(`Client-${clientID} Clear`);
 
 		if(!id){
 			socket.emit("Clear", {
@@ -169,16 +182,16 @@ ioServer.on("connection", (socket) => {
 		})
 		return;
 	}).on("Close", async ()=>{
-		console.log(`Client-${socketID} Close`);
+		console.log(`Client-${clientID} Close`);
 
 		socket.disconnect();
 		return;
 	})
 
 	socket.on("disconnect", (reason)=>{
-		clients.delete(socket.id);
+		clients.delete(clientID);
 
-		console.log(`Client-${socketID} disconnected`)
+		console.log(`Client-${clientID} disconnected`)
 
 		if(clients.size <= 0){
 			closeDB();
