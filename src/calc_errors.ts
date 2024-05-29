@@ -9,7 +9,7 @@ export class CalcError extends Error {
 	constructor(message:string, value:any) {
 	  super(message);
 	  this.name = this.constructor.name;
-	  this._value = value;
+	  this._value = value.toString();
 	}
 }
 
@@ -30,7 +30,7 @@ export class NegativeValueCalcError extends CalcError {
 
 export class InfinityCalcError extends CalcError {
 
-	constructor(message:string, value:typeof Infinity){
+	constructor(message:string, value:number = Infinity){
 		super(message, value);
 	}
 	
@@ -38,7 +38,7 @@ export class InfinityCalcError extends CalcError {
 
 export class UndefinedCalcError extends CalcError {
 
-	constructor(message:string, value:typeof NaN){
+	constructor(message:string, value:number = NaN){
 		super(message, value);
 	}
 	
