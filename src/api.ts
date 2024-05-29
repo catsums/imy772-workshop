@@ -6,7 +6,7 @@ import { appendHistory, clearHistory, closeDB, connectDB, createHistory, retriev
 import http from 'http';
 
 import * as MY from "@catsums/my";
-import { StoreType, Calculator, processStore } from './storage';
+import { StoreType, Calculator, processStore, SpecialToken } from './storage';
 import { CalcError } from "./calc_errors";
 
 export const app = express();
@@ -105,6 +105,7 @@ ioServer.on("connection", (socket) => {
 			}
 	
 			let cache = calc.getStore();
+			// console.log({cache, data: (data.tokens || data.stream), syncID:sync.id});
 
 			socket.emit("Input", {
 				success: true,
@@ -145,9 +146,16 @@ ioServer.on("connection", (socket) => {
 
 		try {
 			let store = calc.getStore();
-			let historyData = await getHistory(id);
+			
+			let history = [];
 
-			let history = historyData.history.map((hist)=>(hist.output))
+			if(store.includes(SpecialToken.Ans)){
+				let historyData = await getHistory(id);
+	
+				if(historyData?.history){
+					history = historyData.history.map((hist)=>(hist.output))
+				}
+			}
 
 			let res = processStore(store, history);
 
@@ -244,7 +252,7 @@ ioServer.on("connection", (socket) => {
 
 			socket.emit("AllClear", {
 				success: true,
-				message: `Cleared Input`,
+				message: `Cleared Cache`,
 				data: { id, cache },
 				sync,
 			});
