@@ -1,12 +1,16 @@
 
-import {describe, test, expect, jest, beforeAll, afterAll} from "@jest/globals";
-import _ from "lodash";
+import {describe, test, expect, jest, beforeAll, afterAll, beforeEach, afterEach} from "@jest/globals";
+import _, { reject } from "lodash";
 
 process.env.NODE_ENV = "development";
 
 import { io, Socket } from "socket.io-client";
 
-import {app, changePort, clients, server, ioServer, DBdelete, DBreset} from "./api";
+import {app, changePort, clients, server, ioServer, DBdelete, DBreset, createSync} from "./api";
+import { StoreType } from "./storage";
+import { randomID } from '@catsums/my';
+import { closeDB } from "./db";
+
 
 let port = 8082;
 
@@ -27,167 +31,513 @@ describe("Access API functions", () => {
 			console.log(`Test Listening on Port ${port}`);
 		})
 	});
-
+	
 	afterAll(async () => {
 		await DBdelete(id);
 		if(socket.connected){
 			socket.disconnect();
 		}
+		await closeDB();
 		ioServer.close();
 		server.close();
 	});
 
-	test("Test open and connect socket", async () => {
-		
-		socket = io(testURL);
-		
-		let res = await new Promise((resolve, reject)=>{
-			socket.on("connect", ()=>{
-				resolve(true);
+	describe("Testing Socket and Server", () => {
+		test("Test open and connect socket", async () => {
+			
+			socket = io(testURL);
+			
+			let res = await new Promise((resolve, reject)=>{
+				socket.on("connect", ()=>{
+					resolve(true);
+				});
+			})
+			expect(socket.connected).toBe(true);
+			expect(clients.get(socket.id).id).toBe(socket.id);
+			expect(clients.size).toBe(1);
+		});
+	})
+
+	describe("Testing Calculator API functions", () => {
+		afterEach(async () => {
+			clients.forEach((client) => {
+				let calc = client.calculator;
+				calc.clearCache();
 			});
 		})
-		expect(res).toBeTruthy();
-	});
-	test("Test creating Data using API", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let expected = {
-			success: true,
-			message: "Created History",
-			data: {
-				id,
-			},
-			sync,
-		}
+		// test caching current input
+		test("Test send current input to the server", async () => {
+			let syncList = [];
 
-		let actual = await new Promise((resolve, reject) => {
+			let inputs:[string, string[]][] = [
+				["5", ["5"]],
+				["A", ["5A"]],
+				["F", ["5AF"]],
+			]
 
-			socket.emit("Create", { id, sync});
-	
-			socket.on("Create", (res)=>{
-				if(res.sync.time != sync.time) return;
-				resolve(res);
+			let inputsKeys:string[] = [];
+			let inputsVals:string[][] = [];
+			inputs.forEach((input) => {
+				let [inputI, inputO] = input;
+				inputsKeys.push(inputI);
+				inputsVals.push(inputO);
 			});
-		});
 
-		expect(actual).toEqual(expected);
+			let promises = [];
 
-	});
-	test("Test set Data using API", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let expected = {
-			success: true,
-			message: "Appended History",
-			data: {
-				id,
-			},
-			sync,
-		}
-		let data = {
-			input: "F+B",
-			output: "1A",
-			inTime: 0,
-			outTime: 1,
-		};
+			for(let input of inputsKeys) {
+				promises.push(new Promise((resolve, reject) => {
+					let sync = createSync();
+					syncList.push(sync);
 
-		let actual = await new Promise((resolve, reject) => {
+					socket.emit("Input", { id, sync, data: {
+						stream: input,
+						inTime: sync.time,
+					}});
 
-			socket.emit("Append", {
-				id, data, sync,
-			});
-	
-			socket.on("Append", (res)=>{
-				if(res.sync.time != sync.time) return;
-				resolve(res);
-			});
-		});
-
-		expect(actual).toEqual(expected);
-
-	});
-	test("Test get Data using API", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let expected = {
-			success: true,
-			message: "Got History",
-			data: {
-				id,
-				history:[
-					{
-						input: "F+B",
-						output: "1A",
-						inTime: 0,
-						outTime: 1,
+					function onInput(res){
+						if(res.sync.id != sync.id) return;
+						socket.off("Input", onInput);
+						resolve(res);
 					}
-				]
-			},
-			sync,
-		}
+					socket.on("Input", onInput);
+				}))
+			}
 
-		let actual = await new Promise((resolve, reject) => {
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
 
-			socket.emit("Get", {
-				id, sync,
-			});
-	
-			socket.on("Get", (res)=>{
-				if(res.sync.time != sync.time) return;
-				resolve(res);
-			});
-		});
+			for(let i=0;i<results.length;i++) {
+				let res = results[i];
+				let sync = syncList[i];
 
-		expect(actual).toEqual(expected);
-
-	});
-	test("Test clear Data using API", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let expected = {
-			success: true,
-			message: "Deleted History",
-			data: {
-				id,
-			},
-			sync,
-		}
-
-		let actual = await new Promise((resolve, reject) => {
-
-			socket.emit("Clear", {
-				id, sync,
-			});
-	
-			socket.on("Clear", (res)=>{
-				if(res.sync.time != sync.time){
-					return;
+				let expected = {
+					success: true,
+					message: "Input Data",
+					data: {
+						id,
+						cache: inputsVals[i],
+					},
+					sync,
 				}
-				resolve(res);
-			});
-		});
 
-		expect(actual).toEqual(expected);
-
-	});
-	test("Test close Socket", async () => {
-		let sync = {
-			time: Date.now(),
-		}
-		let res = await new Promise((resolve, reject) => {
-
-			socket.emit("Close");
+				expect(res).toEqual(expected);
+			}
 	
-			socket.on("disconnect", (res)=>{
-				resolve(true);
-			});
 		});
+		//test caching current tokens
+		test("Test send current multiple tokens to the server", async () => {
+			let syncList = [];
 
-		expect(res).toBe(true);
+			let inputs:[string, string[]][] = [
+				[ "1", ["1"] ],
+				[ "5", ["15"] ],
+				[ "+", ["15","+"] ],
+				[ "2", ["15","+","2"] ],
+				[ "A", ["15","+","2A"]] ,
+			];
 
+			let inputsKeys:string[] = [];
+			let inputsVals:string[][] = [];
+			inputs.forEach((input) => {
+				let [inputI, inputO] = input;
+				inputsKeys.push(inputI);
+				inputsVals.push(inputO);
+			});
+
+			let promises = [];
+
+			for(let input of inputsKeys) {
+
+				promises.push(new Promise((resolve, reject) => {
+					let sync = createSync();
+					syncList.push(sync);
+
+					socket.emit("Input", { id, sync, data: {
+						stream: input,
+						inTime: sync.time,
+					}});
+					
+					function onInput(res){
+						if(res.sync.id != sync.id) return;
+						socket.off("Input", onInput);
+						resolve(res);
+					}
+					socket.on("Input", onInput);
+				}))
+			}
+
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
+
+			for(let i=0;i<results.length;i++) {
+				let res = results[i];
+				let sync = syncList[i];
+
+				let expected = {
+					success: true,
+					message: "Input Data",
+					data: {
+						id,
+						cache: inputsVals[i],
+					},
+					sync,
+				}
+
+				// console.log({exp: inputsVals[i], act: res.data.cache, key: inputsKeys[i], syncID:sync.id});
+				expect(res).toEqual(expected);
+			}
+	
+		});
+		//test calculate on server and return answer
+		test("Test calculate values on the server", async () => {
+			let syncList = [];
+
+			let inputs:StoreType = ["11","-","A"];
+
+			let promises = [];
+
+			promises.push(new Promise((resolve, reject) => {
+				let sync = createSync();
+				syncList.push(sync);
+
+				socket.emit("Input", { id, sync, data: {
+					tokens: inputs,
+					inTime: sync.time,
+				}});
+				socket.on("Input", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			}), new Promise((resolve, reject) => {
+				let sync = createSync();
+				syncList.push(sync);
+
+				socket.emit("Calculate", { id, sync });
+				socket.on("Calculate", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			}));
+
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
+			let res = results.at(-1);
+
+			let expected = {
+				success: true,
+				message: "Calculated Data",
+				data: {
+					id,
+					output: {
+						input: inputs.join(""),
+						output: "7",
+						inTime: syncList.at(-1),
+					}
+				},
+				sync: syncList.at(-1),
+			}
+
+			expect(res.success).toBe(expected.success);
+			expect(res.message).toBe(expected.message);
+			expect(res.sync).toEqual(expected.sync);
+			expect(res.data?.output?.input).toEqual(expected.data.output.input);
+			expect(res.data?.output?.output).toEqual(expected.data.output.output);
+	
+		});
+		//test clear current input
+		test("Test clear input on the server", async () => {
+			let syncList = [];
+
+			let inputs:StoreType = ["11","-","A"];
+
+			let promises = [];
+
+			promises.push(new Promise((resolve, reject) => {
+				let sync = createSync();
+				syncList.push(sync);
+
+				socket.emit("Input", { id, sync, data: {
+					tokens: inputs,
+					inTime: sync.time,
+				}});
+				socket.on("Input", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			}), new Promise((resolve, reject) => {
+				let sync = createSync();
+				syncList.push(sync);
+
+				socket.emit("ClearInput", { id, sync,});
+				socket.on("ClearInput", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			}));
+
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
+			let res = results.at(-1);
+
+			let expected = {
+				success: true,
+				message: "Cleared Input",
+				data: {
+					id,
+					cache: ["11", "-", ""]
+				},
+				sync: syncList.at(-1),
+			}
+
+			expect(res).toEqual(expected);
+	
+		});
+		//test clear current tokens (all cache)
+		test("Test clear all cache on the server", async () => {
+			let syncList = [];
+
+			let inputs:StoreType = ["11","-","A"];
+
+			let promises = [];
+
+			promises.push(new Promise((resolve, reject) => {
+				let sync = createSync();
+				syncList.push(sync);
+
+				socket.emit("Input", { id, sync, data: {
+					tokens: inputs,
+					inTime: sync.time,
+				}});
+				socket.on("Input", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			}), new Promise((resolve, reject) => {
+				let sync = createSync();
+				syncList.push(sync);
+
+				socket.emit("AllClear", { id, sync,});
+				socket.on("AllClear", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			}));
+
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
+			let res = results.at(-1);
+
+			let expected = {
+				success: true,
+				message: "Cleared Cache",
+				data: {
+					id,
+					cache: []
+				},
+				sync: syncList.at(-1),
+			}
+
+			expect(res).toEqual(expected);
+	
+		});
+		//test receive error
+		test("Test get error on calculation on the server", async () => {
+			let syncList = [];
+
+			let inputs:StoreType = ["1","/","0"];
+
+			let promises = [];
+
+			promises.push(new Promise((resolve, reject) => {
+				let sync = createSync();
+				syncList.push(sync);
+
+				socket.emit("Input", { id, sync, data: {
+					tokens: inputs,
+					inTime: sync.time,
+				}});
+				socket.on("Input", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			}), new Promise((resolve, reject) => {
+				let sync = createSync();
+				syncList.push(sync);
+
+				socket.emit("Calculate", { id, sync,});
+				socket.on("Calculate", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			}));
+
+			let results = await Promise.all(promises);
+			let res = results.at(-1);
+
+			let expected = {
+				success: false,
+				message: "Infinity is literally equivalent to infinity",
+				sync: syncList.at(-1),
+				data: {
+					value: 'Infinity',
+				}
+			}
+
+			expect(res.success).toBe(expected.success);
+			expect(res.message).toBe(expected.message);
+			expect(res.sync).toEqual(expected.sync);
+			expect(res.data?.value?.toString()).toBe(expected.data.value.toString());
+	
+		});
 	});
+
+	describe("Testing Database API functions", () => {
+		test("Test creating Data using API", async () => {
+			let sync = createSync();
+
+			let expected = {
+				success: true,
+				message: "Created History",
+				data: {
+					id,
+				},
+				sync,
+			}
+	
+			let actual = await new Promise((resolve, reject) => {
+	
+				socket.emit("Create", { id, sync});
+		
+				socket.on("Create", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			});
+	
+			expect(actual).toEqual(expected);
+	
+		});
+		test("Test set Data using API", async () => {
+			let sync = createSync();
+
+			let expected = {
+				success: true,
+				message: "Appended History",
+				data: {
+					id,
+				},
+				sync,
+			}
+			let data = {
+				input: "F+B",
+				output: "1A",
+				inTime: 0,
+				outTime: 1,
+			};
+	
+			let actual = await new Promise((resolve, reject) => {
+	
+				socket.emit("Append", {
+					id, data, sync,
+				});
+		
+				socket.on("Append", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			});
+	
+			expect(actual).toEqual(expected);
+	
+		});
+		test("Test get Data using API", async () => {
+			let sync = createSync();
+
+			let expected = {
+				success: true,
+				message: "Got History",
+				data: {
+					id,
+					history:[
+						{
+							input: "F+B",
+							output: "1A",
+							inTime: 0,
+							outTime: 1,
+						}
+					]
+				},
+				sync,
+			}
+	
+			let actual = await new Promise((resolve, reject) => {
+	
+				socket.emit("Get", {
+					id, sync,
+				});
+		
+				socket.on("Get", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			});
+	
+			expect(actual).toEqual(expected);
+	
+		});
+		test("Test clear Data using API", async () => {
+			let sync = createSync();
+
+			let expected = {
+				success: true,
+				message: "Deleted History",
+				data: {
+					id,
+				},
+				sync,
+			}
+	
+			let actual = await new Promise((resolve, reject) => {
+	
+				socket.emit("Clear", {
+					id, sync,
+				});
+		
+				socket.on("Clear", (res)=>{
+					if(res.sync.id != sync.id) return;
+					resolve(res);
+				});
+			});
+	
+			expect(actual).toEqual(expected);
+	
+		});
+		test("Test close Socket", async () => {
+			let sync = createSync();
+
+			let res = await new Promise((resolve, reject) => {
+	
+				socket.emit("Close");
+		
+				socket.on("disconnect", (res)=>{
+					resolve(true);
+				});
+			});
+	
+			expect(res).toBe(true);
+	
+		});
+	});
+
 })

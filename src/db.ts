@@ -11,7 +11,7 @@ let DB_NAME = process.env.NODE_ENV === "production" ? process.env.DB_NAME : proc
 export interface ICalculatorInput {
 	stream?: string;
 	tokens?: StoreType;
-	inTime: Date;
+	inTime: number;
 }
 export interface ICalculatorInputStream extends ICalculatorInput {
 	stream: InputStream;
@@ -57,21 +57,19 @@ export const collections = {
 	history: "history",
 }
 
-DB.client = new MongoClient(DB.config.url, {
-	serverApi: ServerApiVersion.v1,
-});
-
-if(DB.client){
-	DB.client.on("open", ()=>{
-		DB.connected = true;
-	});
-	DB.client.on("topologyClosed", ()=>{
-		DB.connected = false;
-		DB.conn = null;
-	});
-}
-
 export async function connectDB(){
+	if(!DB.client){
+		DB.client = new MongoClient(DB.config.url, {
+			serverApi: ServerApiVersion.v1,
+		});
+		DB.client.on("open", ()=>{
+			DB.connected = true;
+		});
+		DB.client.on("topologyClosed", ()=>{
+			DB.connected = false;
+			DB.conn = null;
+		});
+	}
 	if(!DB.connected){
 		DB.conn = await DB.client.connect();
 	}
@@ -80,7 +78,7 @@ export async function connectDB(){
 
 export async function closeDB(){
 	if(DB.connected){
-		DB.client.close();
+		await DB.client.close();
 	}
 	DB.conn = null;
 }
