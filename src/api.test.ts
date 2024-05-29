@@ -1,13 +1,14 @@
 
-import {describe, test, expect, jest, beforeAll, afterAll, beforeEach} from "@jest/globals";
+import {describe, test, expect, jest, beforeAll, afterAll, beforeEach, afterEach} from "@jest/globals";
 import _, { reject } from "lodash";
 
 process.env.NODE_ENV = "development";
 
 import { io, Socket } from "socket.io-client";
 
-import {app, changePort, clients, server, ioServer, DBdelete, DBreset} from "./api";
+import {app, changePort, clients, server, ioServer, DBdelete, DBreset, createSync} from "./api";
 import { StoreType } from "./storage";
+import { randomID } from '@catsums/my';
 
 
 let port = 8082;
@@ -62,7 +63,7 @@ describe("Access API functions", () => {
 				calc.clearCache();
 			});
 		})
-		//test caching current input
+		// test caching current input
 		test("Test send current input to the server", async () => {
 			let syncList = [];
 
@@ -83,24 +84,29 @@ describe("Access API functions", () => {
 			let promises = [];
 
 			for(let input of inputsKeys) {
-				let sync = {
-					time: Date.now(),
-				}
-				syncList.push(sync);
-
 				promises.push(new Promise((resolve, reject) => {
+					let sync = createSync();
+					syncList.push(sync);
+
 					socket.emit("Input", { id, sync, data: {
 						stream: input,
 						inTime: sync.time,
 					}});
-					socket.on("Input", (res)=>{
-						if(res.sync.time != sync.time) return;
+
+					function onInput(res){
+						if(res.sync.id != sync.id) return;
+						socket.off("Input", onInput);
 						resolve(res);
-					});
+					}
+					socket.on("Input", onInput);
 				}))
 			}
 
-			let results = await Promise.all(promises);
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
+
 			for(let i=0;i<results.length;i++) {
 				let res = results[i];
 				let sync = syncList[i];
@@ -142,24 +148,30 @@ describe("Access API functions", () => {
 			let promises = [];
 
 			for(let input of inputsKeys) {
-				let sync = {
-					time: Date.now(),
-				}
-				syncList.push(sync);
 
 				promises.push(new Promise((resolve, reject) => {
+					let sync = createSync();
+					syncList.push(sync);
+
 					socket.emit("Input", { id, sync, data: {
 						stream: input,
 						inTime: sync.time,
 					}});
-					socket.on("Input", (res)=>{
-						if(res.sync.time != sync.time) return;
+					
+					function onInput(res){
+						if(res.sync.id != sync.id) return;
+						socket.off("Input", onInput);
 						resolve(res);
-					});
+					}
+					socket.on("Input", onInput);
 				}))
 			}
 
-			let results = await Promise.all(promises);
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
+
 			for(let i=0;i<results.length;i++) {
 				let res = results[i];
 				let sync = syncList[i];
@@ -174,6 +186,7 @@ describe("Access API functions", () => {
 					sync,
 				}
 
+				// console.log({exp: inputsVals[i], act: res.data.cache, key: inputsKeys[i], syncID:sync.id});
 				expect(res).toEqual(expected);
 			}
 	
@@ -187,9 +200,7 @@ describe("Access API functions", () => {
 			let promises = [];
 
 			promises.push(new Promise((resolve, reject) => {
-				let sync = {
-					time: Date.now(),
-				}
+				let sync = createSync();
 				syncList.push(sync);
 
 				socket.emit("Input", { id, sync, data: {
@@ -197,23 +208,24 @@ describe("Access API functions", () => {
 					inTime: sync.time,
 				}});
 				socket.on("Input", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			}), new Promise((resolve, reject) => {
-				let sync = {
-					time: Date.now(),
-				}
+				let sync = createSync();
 				syncList.push(sync);
 
 				socket.emit("Calculate", { id, sync });
 				socket.on("Calculate", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			}));
 
-			let results = await Promise.all(promises);
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
 			let res = results.at(-1);
 
 			let expected = {
@@ -246,9 +258,7 @@ describe("Access API functions", () => {
 			let promises = [];
 
 			promises.push(new Promise((resolve, reject) => {
-				let sync = {
-					time: Date.now(),
-				}
+				let sync = createSync();
 				syncList.push(sync);
 
 				socket.emit("Input", { id, sync, data: {
@@ -256,23 +266,24 @@ describe("Access API functions", () => {
 					inTime: sync.time,
 				}});
 				socket.on("Input", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			}), new Promise((resolve, reject) => {
-				let sync = {
-					time: Date.now(),
-				}
+				let sync = createSync();
 				syncList.push(sync);
 
 				socket.emit("ClearInput", { id, sync,});
 				socket.on("ClearInput", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			}));
 
-			let results = await Promise.all(promises);
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
 			let res = results.at(-1);
 
 			let expected = {
@@ -297,9 +308,7 @@ describe("Access API functions", () => {
 			let promises = [];
 
 			promises.push(new Promise((resolve, reject) => {
-				let sync = {
-					time: Date.now(),
-				}
+				let sync = createSync();
 				syncList.push(sync);
 
 				socket.emit("Input", { id, sync, data: {
@@ -307,23 +316,24 @@ describe("Access API functions", () => {
 					inTime: sync.time,
 				}});
 				socket.on("Input", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			}), new Promise((resolve, reject) => {
-				let sync = {
-					time: Date.now(),
-				}
+				let sync = createSync();
 				syncList.push(sync);
 
 				socket.emit("AllClear", { id, sync,});
 				socket.on("AllClear", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			}));
 
-			let results = await Promise.all(promises);
+			let results = [];
+			for(let promise of promises){
+				results.push(await promise);
+			}
 			let res = results.at(-1);
 
 			let expected = {
@@ -348,9 +358,7 @@ describe("Access API functions", () => {
 			let promises = [];
 
 			promises.push(new Promise((resolve, reject) => {
-				let sync = {
-					time: Date.now(),
-				}
+				let sync = createSync();
 				syncList.push(sync);
 
 				socket.emit("Input", { id, sync, data: {
@@ -358,18 +366,16 @@ describe("Access API functions", () => {
 					inTime: sync.time,
 				}});
 				socket.on("Input", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			}), new Promise((resolve, reject) => {
-				let sync = {
-					time: Date.now(),
-				}
+				let sync = createSync();
 				syncList.push(sync);
 
 				socket.emit("Calculate", { id, sync,});
 				socket.on("Calculate", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			}));
@@ -393,9 +399,8 @@ describe("Access API functions", () => {
 
 	describe("Testing Database API functions", () => {
 		test("Test creating Data using API", async () => {
-			let sync = {
-				time: Date.now(),
-			}
+			let sync = createSync();
+
 			let expected = {
 				success: true,
 				message: "Created History",
@@ -410,7 +415,7 @@ describe("Access API functions", () => {
 				socket.emit("Create", { id, sync});
 		
 				socket.on("Create", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			});
@@ -419,9 +424,8 @@ describe("Access API functions", () => {
 	
 		});
 		test("Test set Data using API", async () => {
-			let sync = {
-				time: Date.now(),
-			}
+			let sync = createSync();
+
 			let expected = {
 				success: true,
 				message: "Appended History",
@@ -444,7 +448,7 @@ describe("Access API functions", () => {
 				});
 		
 				socket.on("Append", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			});
@@ -453,9 +457,8 @@ describe("Access API functions", () => {
 	
 		});
 		test("Test get Data using API", async () => {
-			let sync = {
-				time: Date.now(),
-			}
+			let sync = createSync();
+
 			let expected = {
 				success: true,
 				message: "Got History",
@@ -480,7 +483,7 @@ describe("Access API functions", () => {
 				});
 		
 				socket.on("Get", (res)=>{
-					if(res.sync.time != sync.time) return;
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			});
@@ -489,9 +492,8 @@ describe("Access API functions", () => {
 	
 		});
 		test("Test clear Data using API", async () => {
-			let sync = {
-				time: Date.now(),
-			}
+			let sync = createSync();
+
 			let expected = {
 				success: true,
 				message: "Deleted History",
@@ -508,9 +510,7 @@ describe("Access API functions", () => {
 				});
 		
 				socket.on("Clear", (res)=>{
-					if(res.sync.time != sync.time){
-						return;
-					}
+					if(res.sync.id != sync.id) return;
 					resolve(res);
 				});
 			});
@@ -519,9 +519,8 @@ describe("Access API functions", () => {
 	
 		});
 		test("Test close Socket", async () => {
-			let sync = {
-				time: Date.now(),
-			}
+			let sync = createSync();
+
 			let res = await new Promise((resolve, reject) => {
 	
 				socket.emit("Close");
