@@ -114,6 +114,14 @@ export class Calculator {
 		return this.store.slice();
 	}
 
+	clearInput(){
+		this.current = "";
+	}
+
+	clearCache(){
+		this.store = [];
+	}
+
 }
 
 function isOperatorToken(token: string) {
