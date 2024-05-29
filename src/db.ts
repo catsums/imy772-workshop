@@ -11,7 +11,7 @@ let DB_NAME = process.env.NODE_ENV === "production" ? process.env.DB_NAME : proc
 export interface ICalculatorInput {
 	stream?: string;
 	tokens?: StoreType;
-	inTime: Date;
+	inTime: number;
 }
 export interface ICalculatorInputStream extends ICalculatorInput {
 	stream: InputStream;
