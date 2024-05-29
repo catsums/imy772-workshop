@@ -31,6 +31,13 @@ export interface IClient {
 
 export const clients = new Map<string, IClient>();
 
+export function createSync(){
+	return {
+		time: Date.now(),
+		id: MY.randomID(),
+	}
+}
+
 export async function DBreset(){
 	let dbClient = await connectDB();
 	if(!dbClient){
