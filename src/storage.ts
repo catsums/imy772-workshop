@@ -111,7 +111,7 @@ export class Calculator {
 	}
 	
 	getStore(){
-		return this.store.slice();
+		return this.store.slice() as StoreType;
 	}
 
 	clearInput(){
