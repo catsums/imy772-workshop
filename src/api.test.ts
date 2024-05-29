@@ -1,12 +1,14 @@
 
-import {describe, test, expect, jest, beforeAll, afterAll} from "@jest/globals";
-import _ from "lodash";
+import {describe, test, expect, jest, beforeAll, afterAll, beforeEach} from "@jest/globals";
+import _, { reject } from "lodash";
 
 process.env.NODE_ENV = "development";
 
 import { io, Socket } from "socket.io-client";
 
 import {app, changePort, clients, server, ioServer, DBdelete, DBreset} from "./api";
+import { StoreType } from "./storage";
+
 
 let port = 8082;
 
@@ -27,7 +29,7 @@ describe("Access API functions", () => {
 			console.log(`Test Listening on Port ${port}`);
 		})
 	});
-
+	
 	afterAll(async () => {
 		await DBdelete(id);
 		if(socket.connected){
@@ -37,16 +39,7 @@ describe("Access API functions", () => {
 		server.close();
 	});
 
-	describe("Testing Calculator API functions", () => {
-		//test caching current input
-		//test caching current tokens
-		//test calculate on server and return answer
-		//test clear current input
-		//test clear current tokens (all cache)
-		//test receive error
-	});
-
-	describe("Testing Database API functions", () => {
+	describe("Testing Socket and Server", () => {
 		test("Test open and connect socket", async () => {
 			
 			socket = io(testURL);
@@ -56,8 +49,346 @@ describe("Access API functions", () => {
 					resolve(true);
 				});
 			})
-			expect(res).toBeTruthy();
+			expect(socket.connected).toBe(true);
+			expect(clients.get(socket.id).id).toBe(socket.id);
+			expect(clients.size).toBe(1);
 		});
+	})
+
+	describe("Testing Calculator API functions", () => {
+		afterEach(async () => {
+			clients.forEach((client) => {
+				let calc = client.calculator;
+				calc.clearCache();
+			});
+		})
+		//test caching current input
+		test("Test send current input to the server", async () => {
+			let syncList = [];
+
+			let inputs:[string, string[]][] = [
+				["5", ["5"]],
+				["A", ["5A"]],
+				["F", ["5AF"]],
+			]
+
+			let inputsKeys:string[] = [];
+			let inputsVals:string[][] = [];
+			inputs.forEach((input) => {
+				let [inputI, inputO] = input;
+				inputsKeys.push(inputI);
+				inputsVals.push(inputO);
+			});
+
+			let promises = [];
+
+			for(let input of inputsKeys) {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				promises.push(new Promise((resolve, reject) => {
+					socket.emit("Input", { id, sync, data: {
+						stream: input,
+						inTime: sync.time,
+					}});
+					socket.on("Input", (res)=>{
+						if(res.sync.time != sync.time) return;
+						resolve(res);
+					});
+				}))
+			}
+
+			let results = await Promise.all(promises);
+			for(let i=0;i<results.length;i++) {
+				let res = results[i];
+				let sync = syncList[i];
+
+				let expected = {
+					success: true,
+					message: "Input Data",
+					data: {
+						id,
+						cache: inputsVals[i],
+					},
+					sync,
+				}
+
+				expect(res).toEqual(expected);
+			}
+	
+		});
+		//test caching current tokens
+		test("Test send current multiple tokens to the server", async () => {
+			let syncList = [];
+
+			let inputs:[string, string[]][] = [
+				[ "1", ["1"] ],
+				[ "5", ["15"] ],
+				[ "+", ["15","+"] ],
+				[ "2", ["15","+","2"] ],
+				[ "A", ["15","+","2A"]] ,
+			];
+
+			let inputsKeys:string[] = [];
+			let inputsVals:string[][] = [];
+			inputs.forEach((input) => {
+				let [inputI, inputO] = input;
+				inputsKeys.push(inputI);
+				inputsVals.push(inputO);
+			});
+
+			let promises = [];
+
+			for(let input of inputsKeys) {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				promises.push(new Promise((resolve, reject) => {
+					socket.emit("Input", { id, sync, data: {
+						stream: input,
+						inTime: sync.time,
+					}});
+					socket.on("Input", (res)=>{
+						if(res.sync.time != sync.time) return;
+						resolve(res);
+					});
+				}))
+			}
+
+			let results = await Promise.all(promises);
+			for(let i=0;i<results.length;i++) {
+				let res = results[i];
+				let sync = syncList[i];
+
+				let expected = {
+					success: true,
+					message: "Input Data",
+					data: {
+						id,
+						cache: inputsVals[i],
+					},
+					sync,
+				}
+
+				expect(res).toEqual(expected);
+			}
+	
+		});
+		//test calculate on server and return answer
+		test("Test calculate values on the server", async () => {
+			let syncList = [];
+
+			let inputs:StoreType = ["11","-","A"];
+
+			let promises = [];
+
+			promises.push(new Promise((resolve, reject) => {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				socket.emit("Input", { id, sync, data: {
+					tokens: inputs,
+					inTime: sync.time,
+				}});
+				socket.on("Input", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			}), new Promise((resolve, reject) => {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				socket.emit("Calculate", { id, sync,});
+				socket.on("Calculate", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			}));
+
+			let results = await Promise.all(promises);
+			let res = results.at(-1);
+
+			let expected = {
+				success: true,
+				message: "Calculated Data",
+				data: {
+					id,
+					output: {
+						input: inputs.join(""),
+						output: "7",
+						inTime: syncList.at(-1),
+					}
+				},
+				sync: syncList.at(-1),
+			}
+
+			expect(res.success).toEqual(expected.success);
+			expect(res.message).toEqual(expected.message);
+			expect(res.data?.output?.inTime).toEqual(expected.data.output.inTime);
+			expect(res.data?.output?.input).toEqual(expected.data.output.input);
+			expect(res.data?.output?.output).toEqual(expected.data.output.output);
+	
+		});
+		//test clear current input
+		test("Test clear input on the server", async () => {
+			let syncList = [];
+
+			let inputs:StoreType = ["11","-","A"];
+
+			let promises = [];
+
+			promises.push(new Promise((resolve, reject) => {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				socket.emit("Input", { id, sync, data: {
+					tokens: inputs,
+					inTime: sync.time,
+				}});
+				socket.on("Input", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			}), new Promise((resolve, reject) => {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				socket.emit("ClearInput", { id, sync,});
+				socket.on("ClearInput", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			}));
+
+			let results = await Promise.all(promises);
+			let res = results.at(-1);
+
+			let expected = {
+				success: true,
+				message: "Cleared Input",
+				data: {
+					id,
+					cache: ["11", "-", ""]
+				},
+				sync: syncList.at(-1),
+			}
+
+			expect(res).toEqual(expected);
+	
+		});
+		//test clear current tokens (all cache)
+		test("Test clear input on the server", async () => {
+			let syncList = [];
+
+			let inputs:StoreType = ["11","-","A"];
+
+			let promises = [];
+
+			promises.push(new Promise((resolve, reject) => {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				socket.emit("Input", { id, sync, data: {
+					tokens: inputs,
+					inTime: sync.time,
+				}});
+				socket.on("Input", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			}), new Promise((resolve, reject) => {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				socket.emit("AllClear", { id, sync,});
+				socket.on("AllClear", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			}));
+
+			let results = await Promise.all(promises);
+			let res = results.at(-1);
+
+			let expected = {
+				success: true,
+				message: "Cleared Cache",
+				data: {
+					id,
+					cache: []
+				},
+				sync: syncList.at(-1),
+			}
+
+			expect(res).toEqual(expected);
+	
+		});
+		//test receive error
+		test("Test clear input on the server", async () => {
+			let syncList = [];
+
+			let inputs:StoreType = ["1","/","0"];
+
+			let promises = [];
+
+			promises.push(new Promise((resolve, reject) => {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				socket.emit("Input", { id, sync, data: {
+					tokens: inputs,
+					inTime: sync.time,
+				}});
+				socket.on("Input", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			}), new Promise((resolve, reject) => {
+				let sync = {
+					time: Date.now(),
+				}
+				syncList.push(sync);
+
+				socket.emit("Calculate", { id, sync,});
+				socket.on("Calculate", (res)=>{
+					if(res.sync.time != sync.time) return;
+					resolve(res);
+				});
+			}));
+
+			let results = await Promise.all(promises);
+			let res = results.at(-1);
+
+			let expected = {
+				success: false,
+				message: "Infinity can't be processed",
+				sync: syncList.at(-1),
+			}
+
+			expect(res).toEqual(expected);
+	
+		});
+	});
+
+	describe("Testing Database API functions", () => {
 		test("Test creating Data using API", async () => {
 			let sync = {
 				time: Date.now(),
