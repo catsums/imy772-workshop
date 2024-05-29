@@ -159,6 +159,8 @@ ioServer.on("connection", (socket) => {
 
 			let res = processStore(store, history);
 
+			// console.log({res})
+
 			let output:ICalculatorOutput = {
 				input: store.join(""),
 				output: res,
