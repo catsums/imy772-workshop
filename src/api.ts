@@ -2,10 +2,12 @@
 import { Server, Socket } from "socket.io";
 import express from "express";
 import path from "path";
-import { appendHistory, clearHistory, closeDB, connectDB, createHistory, retrieveHistory, deleteHistory, resetDB } from "./db";
+import { appendHistory, clearHistory, closeDB, connectDB, createHistory, retrieveHistory, deleteHistory, resetDB, ICalculatorInputTokens, ICalculatorInputStream, ICalculatorOutput } from "./db";
 import http from 'http';
 
 import * as MY from "@catsums/my";
+import { StoreType, Calculator, processStore, SpecialToken } from './storage';
+import { CalcError } from "./calc_errors";
 
 export const app = express();
 export const PORT = Number(process.env.PORT) || 8081;
@@ -21,7 +23,20 @@ changePort(PORT, () => {
 
 export const ioServer = new Server(server);
 
-export const clients = new Map<string, Socket>();
+export interface IClient {
+	id: string;
+	socket: Socket;
+	calculator:Calculator;
+}
+
+export const clients = new Map<string, IClient>();
+
+export function createSync(){
+	return {
+		time: Date.now(),
+		id: MY.randomID(),
+	}
+}
 
 export async function DBreset(){
 	let dbClient = await connectDB();
@@ -42,20 +57,235 @@ export async function DBdelete(id:string){
 	return await deleteHistory(id);
 }
 
+async function getHistory(id){
+	await connectDB();
+	let history = await retrieveHistory(id);
+	
+	return history;
+}
+
 ioServer.on("connection", (socket) => {
 
-	let socketID = socket.id;
+	// let clientID = `${MY.randomString(4)}-${MY.randomString(4)}`;
+	let clientID = socket.id;
+	let client:IClient = {
+		id: clientID,
+		socket: socket,
+		calculator: new Calculator(),
+	}
 	
-	clients.set(socketID, socket);
+	clients.set(clientID, client);
 
-	console.log(`New Client: ${socketID}`)
+	console.log(`New Client: ${clientID}`)
 
+	socket.on("Input", async ({id, sync, data})=>{
+		console.log(`Client-${clientID} Input`);
+		if(!id){
+			socket.emit("Input", {
+				success: false,
+				message: "Missing ID",
+				sync,
+			});
+			return;
+		}
+
+		let calc = client.calculator;
+
+		try {
+			if(data.tokens){
+				let tokens = (data as ICalculatorInputTokens).tokens;
+				for(let token of tokens){
+					calc.processStream(token);
+				}
+			}
+	
+			if(data.stream){
+				let stream = (data as ICalculatorInputStream).stream;
+				calc.processStream(stream);
+			}
+	
+			let cache = calc.getStore();
+			// console.log({cache, data: (data.tokens || data.stream), syncID:sync.id});
+
+			socket.emit("Input", {
+				success: true,
+				message: `Input Data`,
+				data: { id, cache},
+				sync,
+			});
+		}catch(err){
+			if(err instanceof CalcError){
+				socket.emit("Input", {
+					success: false,
+					message: err.message,
+					data: {
+						value: err.value,
+					},
+					sync,
+				});
+				return;
+			}
+			socket.emit("Input", {
+				success: false,
+				message: `${err}`,
+				sync,
+			})
+		}
+	}).on("Calculate", async ({id, sync})=>{
+		console.log(`Client-${clientID} Calculate`);
+		if(!id){
+			socket.emit("Calculate", {
+				success: false,
+				message: "Missing ID",
+				sync,
+			});
+			return;
+		}
+
+		let calc = client.calculator;
+
+		try {
+			let store = calc.getStore();
+			
+			let history = [];
+
+			if(store.includes(SpecialToken.Ans)){
+				let historyData = await getHistory(id);
+	
+				if(historyData?.history){
+					history = historyData.history.map((hist)=>(hist.output))
+				}
+			}
+
+			let res = processStore(store, history);
+
+			// console.log({res})
+
+			let output:ICalculatorOutput = {
+				input: store.join(""),
+				output: res,
+				inTime: sync.time,
+				outTime: Date.now(),
+			}
+
+			socket.emit("Calculate", {
+				success: true,
+				message: `Calculated Data`,
+				data: { id, output },
+				sync,
+			});
+		}catch(err){
+			if(err instanceof CalcError){
+				socket.emit("Calculate", {
+					success: false,
+					message: err.message,
+					data: {
+						value: err.value,
+					},
+					sync,
+				});
+				return;
+			}
+			socket.emit("Calculate", {
+				success: false,
+				message: `${err}`,
+				sync,
+			})
+		}
+	}).on("ClearInput", async ({id, sync})=>{
+		console.log(`Client-${clientID} ClearInput`);
+		if(!id){
+			socket.emit("ClearInput", {
+				success: false,
+				message: "Missing ID",
+				sync,
+			});
+			return;
+		}
+
+		let calc = client.calculator;
+
+		try {
+			calc.clearInput();
+
+			let cache = calc.getStore();
+
+			socket.emit("ClearInput", {
+				success: true,
+				message: `Cleared Input`,
+				data: { id, cache },
+				sync,
+			});
+		}catch(err){
+			if(err instanceof CalcError){
+				socket.emit("ClearInput", {
+					success: false,
+					message: err.message,
+					data: {
+						value: err.value,
+					},
+					sync,
+				});
+				return;
+			}
+			socket.emit("ClearInput", {
+				success: false,
+				message: `${err}`,
+				sync,
+			})
+		}
+	}).on("AllClear", async ({id, sync})=>{
+		console.log(`Client-${clientID} AllClear`);
+		if(!id){
+			socket.emit("AllClear", {
+				success: false,
+				message: "Missing ID",
+				sync,
+			});
+			return;
+		}
+
+		let calc = client.calculator;
+
+		try {
+			calc.clearCache();
+
+			let cache = calc.getStore();
+
+			socket.emit("AllClear", {
+				success: true,
+				message: `Cleared Cache`,
+				data: { id, cache },
+				sync,
+			});
+		}catch(err){
+			if(err instanceof CalcError){
+				socket.emit("AllClear", {
+					success: false,
+					message: err.message,
+					data: {
+						value: err.value,
+					},
+					sync,
+				});
+				return;
+			}
+			socket.emit("AllClear", {
+				success: false,
+				message: `${err}`,
+				sync,
+			})
+		}
+	})
+
+	//Database functions
 	socket.on("Create", async ({id, sync})=>{
-		console.log(`Client-${socketID} Create`);
+		console.log(`Client-${clientID} Create`);
 		if(!id){
 			socket.emit("Create", {
 				success: false,
 				message: "Missing ID",
+				sync,
 			});
 			return;
 		}
@@ -66,6 +296,7 @@ ioServer.on("connection", (socket) => {
 			socket.emit("Create", {
 				success: false,
 				message: "Database Error",
+				sync,
 			});
 			return;
 		}
@@ -80,11 +311,12 @@ ioServer.on("connection", (socket) => {
 		})
 		return;
 	}).on("Append", async ({id, data, sync})=>{
-		console.log(`Client-${socketID} Append`);
+		console.log(`Client-${clientID} Append`);
 		if(!id){
 			socket.emit("Append", {
 				success: false,
 				message: "Missing ID",
+				sync,
 			});
 			return;
 		}
@@ -95,6 +327,7 @@ ioServer.on("connection", (socket) => {
 			socket.emit("Append", {
 				success: false,
 				message: "Database Error",
+				sync,
 			});
 			return;
 		}
@@ -109,11 +342,12 @@ ioServer.on("connection", (socket) => {
 		})
 		return;
 	}).on("Get", async ({id, sync})=>{
-		console.log(`Client-${socketID} Get`);
+		console.log(`Client-${clientID} Get`);
 		if(!id){
 			socket.emit("Get", {
 				success: false,
 				message: "Missing ID",
+				sync,
 			});
 			return;
 		}
@@ -124,6 +358,7 @@ ioServer.on("connection", (socket) => {
 			socket.emit("Get", {
 				success: false,
 				message: "Database Error",
+				sync,
 			});
 			return;
 		}
@@ -139,12 +374,13 @@ ioServer.on("connection", (socket) => {
 		})
 		return;
 	}).on("Clear", async ({id, sync})=>{
-		console.log(`Client-${socketID} Clear`);
+		console.log(`Client-${clientID} Clear`);
 
 		if(!id){
 			socket.emit("Clear", {
 				success: false,
 				message: "Missing ID",
+				sync,
 			});
 			return;
 		}
@@ -155,6 +391,7 @@ ioServer.on("connection", (socket) => {
 			socket.emit("Clear", {
 				success: false,
 				message: "Database Error",
+				sync,
 			});
 			return;
 		}
@@ -169,16 +406,16 @@ ioServer.on("connection", (socket) => {
 		})
 		return;
 	}).on("Close", async ()=>{
-		console.log(`Client-${socketID} Close`);
+		console.log(`Client-${clientID} Close`);
 
 		socket.disconnect();
 		return;
 	})
 
 	socket.on("disconnect", (reason)=>{
-		clients.delete(socket.id);
+		clients.delete(clientID);
 
-		console.log(`Client-${socketID} disconnected`)
+		console.log(`Client-${clientID} disconnected`)
 
 		if(clients.size <= 0){
 			closeDB();
