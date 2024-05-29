@@ -78,7 +78,7 @@ export async function connectDB(){
 
 export async function closeDB(){
 	if(DB.connected){
-		DB.client.close();
+		await DB.client.close();
 	}
 	DB.conn = null;
 }
