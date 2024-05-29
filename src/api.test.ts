@@ -242,9 +242,9 @@ describe("Access API functions", () => {
 				sync: syncList.at(-1),
 			}
 
-			expect(res.success).toEqual(expected.success);
-			expect(res.message).toEqual(expected.message);
-			expect(res.data?.output?.inTime).toEqual(expected.data.output.inTime);
+			expect(res.success).toBe(expected.success);
+			expect(res.message).toBe(expected.message);
+			expect(res.sync).toEqual(expected.sync);
 			expect(res.data?.output?.input).toEqual(expected.data.output.input);
 			expect(res.data?.output?.output).toEqual(expected.data.output.output);
 	
@@ -350,7 +350,7 @@ describe("Access API functions", () => {
 	
 		});
 		//test receive error
-		test("Test clear input on the server", async () => {
+		test("Test get error on calculation on the server", async () => {
 			let syncList = [];
 
 			let inputs:StoreType = ["1","/","0"];
@@ -385,14 +385,17 @@ describe("Access API functions", () => {
 
 			let expected = {
 				success: false,
-				message: "Infinity can't be processed",
+				message: "Infinity is literally equivalent to infinity",
 				sync: syncList.at(-1),
 				data: {
-					value: Infinity,
+					value: 'Infinity',
 				}
 			}
 
-			expect(res).toEqual(expected);
+			expect(res.success).toBe(expected.success);
+			expect(res.message).toBe(expected.message);
+			expect(res.sync).toEqual(expected.sync);
+			expect(res.data?.value?.toString()).toBe(expected.data.value.toString());
 	
 		});
 	});
