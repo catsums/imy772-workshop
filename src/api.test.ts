@@ -9,6 +9,7 @@ import { io, Socket } from "socket.io-client";
 import {app, changePort, clients, server, ioServer, DBdelete, DBreset, createSync} from "./api";
 import { StoreType } from "./storage";
 import { randomID } from '@catsums/my';
+import { closeDB } from "./db";
 
 
 let port = 8082;
@@ -36,6 +37,7 @@ describe("Access API functions", () => {
 		if(socket.connected){
 			socket.disconnect();
 		}
+		await closeDB();
 		ioServer.close();
 		server.close();
 	});
