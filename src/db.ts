@@ -4,7 +4,7 @@ import { InputStream, StoreType } from "./storage";
 
 import dotenv from "dotenv";
 dotenv.config({
-	path: "./src/db.dev.env",
+	path: "./db.dev.env",
 });
 
 let DB_NAME = process.env.NODE_ENV === "production" ? process.env.DB_NAME : process.env.TEST_DB_NAME;
@@ -57,21 +57,19 @@ export const collections = {
 	history: "history",
 }
 
-DB.client = new MongoClient(DB.config.url, {
-	serverApi: ServerApiVersion.v1,
-});
-
-if(DB.client){
-	DB.client.on("open", ()=>{
-		DB.connected = true;
-	});
-	DB.client.on("topologyClosed", ()=>{
-		DB.connected = false;
-		DB.conn = null;
-	});
-}
-
 export async function connectDB(){
+	if(!DB.client){
+		DB.client = new MongoClient(DB.config.url, {
+			serverApi: ServerApiVersion.v1,
+		});
+		DB.client.on("open", ()=>{
+			DB.connected = true;
+		});
+		DB.client.on("topologyClosed", ()=>{
+			DB.connected = false;
+			DB.conn = null;
+		});
+	}
 	if(!DB.connected){
 		DB.conn = await DB.client.connect();
 	}
