@@ -206,7 +206,7 @@ describe("Access API functions", () => {
 				}
 				syncList.push(sync);
 
-				socket.emit("Calculate", { id, sync,});
+				socket.emit("Calculate", { id, sync });
 				socket.on("Calculate", (res)=>{
 					if(res.sync.time != sync.time) return;
 					resolve(res);
@@ -289,7 +289,7 @@ describe("Access API functions", () => {
 	
 		});
 		//test clear current tokens (all cache)
-		test("Test clear input on the server", async () => {
+		test("Test clear all cache on the server", async () => {
 			let syncList = [];
 
 			let inputs:StoreType = ["11","-","A"];
@@ -381,6 +381,9 @@ describe("Access API functions", () => {
 				success: false,
 				message: "Infinity can't be processed",
 				sync: syncList.at(-1),
+				data: {
+					value: Infinity,
+				}
 			}
 
 			expect(res).toEqual(expected);
