@@ -18,7 +18,7 @@
     @apply bg-c5-100 rounded inline-flex p-[2px] w-8 mx-[1px] tracking-wider whitespace-nowrap justify-center items-center;
   }
   .calculator .calc-display {
-    @apply row-span-1 grid bg-white border-c5-300 rounded border mb-10 p-1;
+    @apply row-span-1 grid bg-white border-c5-300 rounded border mb-3 p-1;
   }
 }
 
