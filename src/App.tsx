@@ -17,7 +17,7 @@ export default function App() {
 
 	const [id, setID] = useState("");
 	const [openDialog, setOpenDialog] = useState(false);
-	const socket = io(URL);
+	const socket = io();
 	
 	function onConnect() {
 		console.log(`Socket connected! ${socket.id}`);
@@ -44,8 +44,7 @@ export default function App() {
 			setID(_id);
 			return;
 		}
-		
-		console.log({id});
+
 
 		return () => {
 			socket.disconnect();
