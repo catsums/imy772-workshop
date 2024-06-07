@@ -4,11 +4,13 @@ import { Transform } from 'node:stream'
 
 import {app, changePort, clients, server, ioServer, DBdelete, DBreset, createSync} from "./src/api";
 
+export {app, changePort, clients, server, ioServer, DBdelete, DBreset, createSync};
+
 // Constants
-const isProduction = process.env.NODE_ENV === 'production'
-const port = process.env.PORT || 5173
-const base = process.env.BASE || '/'
-const ABORT_DELAY = 10000
+export const isProduction = process.env.NODE_ENV === 'production'
+export const port = process.env.PORT || 5173
+export const base = process.env.BASE || '/'
+export const ABORT_DELAY = 10000
 
 // Cached production assets
 const templateHtml = isProduction
