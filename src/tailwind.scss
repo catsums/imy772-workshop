@@ -3,25 +3,35 @@
 @tailwind utilities;
 
 @layer components {
-	.calc-history {
-		.calc-history-item {
-			@apply bg-c4-200 text-c5-900 rounded flex w-fit p-1 m-1 my-2 tracking-wider whitespace-nowrap justify-start items-center;
-		}
-	}
-	.calculator {
-		@apply rounded grid p-4 bg-c5-50 border border-c5-300 w-[400px] h-[400px];
-		.calc-btn {
-			@apply bg-c5-100 rounded flex justify-center items-center;
-			
-		}
-		.calc-tokens {
-			@apply row-span-1 p-0 mb-2 overflow-auto whitespace-nowrap rounded text-[8pt];
-			.calc-token {
-				@apply bg-c5-100 rounded inline-flex p-[2px] w-8 mx-[1px] tracking-wider whitespace-nowrap justify-center items-center;
+	.calc-container {
+		@apply h-[400px];
+		nav {
+			@apply h-[inherit];
+			.calc-history {
+				.calc-history-item {
+					@apply bg-c4-200 text-c5-900 rounded flex w-fit p-1 m-1 my-2 tracking-wider whitespace-nowrap justify-start items-center select-none;
+					transition: all 0.5s;
+					&:hover {
+						@apply bg-c5-200;
+					}
+				}
 			}
 		}
-		.calc-display {
-			@apply row-span-1 grid bg-white border-c5-300 rounded border mb-3 p-1;
+		.calculator {
+			@apply rounded grid p-4 bg-c5-50 border border-c5-300 w-[400px] h-[400px];
+			.calc-tokens {
+				@apply row-span-1 p-0 mb-2 overflow-auto whitespace-nowrap rounded text-[8pt];
+				.calc-token {
+					@apply bg-c5-100 rounded inline-flex p-[2px] w-8 mx-[1px] tracking-wider whitespace-nowrap justify-center items-center;
+				}
+			}
+			.calc-display {
+				@apply row-span-1 grid bg-white border-c5-300 rounded border mb-3 p-1;
+			}
 		}
+	}
+	.calc-btn {
+		@apply bg-c5-100 rounded flex justify-center items-center select-none;
+		
 	}
 }
