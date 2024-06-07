@@ -15,21 +15,22 @@
     "run": "bun run preview"
   },
   "dependencies": {
-    "compression": "^1.7.4",
-    "sirv": "^2.0.4",
     "@catsums/my": "^1.2.2",
+    "@testing-library/jest-dom": "^6.4.5",
     "classnames": "^2.5.1",
+    "compression": "^1.7.4",
     "express": "^4.19.2",
     "lodash": "^4.17.21",
     "mongodb": "^6.6.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "sirv": "^2.0.4",
     "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
+    "@happy-dom/global-registrator": "^14.12.0",
     "@jest/globals": "^29.7.0",
-    "@testing-library/jest-dom": "^6.4.5",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
     "@types/bun": "^1.1.3",
