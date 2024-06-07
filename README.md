@@ -1,4 +1,10 @@
 
+# Video
+The video to see everything is right [here](https://drive.google.com/file/d/1Cx2mP-tnT6ZJ47y8yxm_llUtyjqyV5Hf/view?usp=sharing)
+
+# Application
+The application can be accessed [here](https://catsums-calculator.onrender.com)
+
 # Functional Requirements
 
 | Category              | Functional Requirements                                                                                                       |
