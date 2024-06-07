@@ -124,10 +124,10 @@ export class Calculator {
 
 }
 
-function isOperatorToken(token: string) {
+export function isOperatorToken(token: string) {
 	return OperationTokens.includes(token);
 }
-function isHexToken(token: string) {
+export function isHexToken(token: string) {
 	for(let char of token){
 		if(!HEXTokens.includes(char)){
 			return false;
@@ -209,7 +209,7 @@ export function processStore(store:string[], history:string[] = []){
 			let curr = init[i] || null;
 			let next = init[i+1] || null;
 	
-			if(isOperatorToken(curr.toString()) && ops.includes(curr.toString())){
+			if(isOperatorToken(curr?.toString()) && ops.includes(curr?.toString())){
 				let a, b;
 	
 				a = prev as number;

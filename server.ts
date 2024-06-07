@@ -101,6 +101,9 @@ app.use('*', async (req, res) => {
 })
 
 // Start http server
-changePort(Number(port), () => {
-  console.log(`Server started at http://localhost:${port}`)
+changePort(Number(port), ()=>{
+	console.log(`Socket Server started at http://localhost:${port}`)
 })
+// app.listen(port, () => {
+//   console.log(`Server started at http://localhost:${port}`)
+// })

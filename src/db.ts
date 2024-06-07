@@ -149,7 +149,7 @@ export async function appendHistory(id:string, {input, output, inTime, outTime}:
 			history: historyData.history,
 			lastModified: new Date(),
 		}
-	}, db);
+	}, db); 
 
 	if(res.modifiedCount) return true;
 

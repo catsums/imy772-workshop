@@ -82,23 +82,165 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 	const [history, setHistory] = useState([]);
 	const [errorText, setErrorText] = useState("");
 
+	function updateHistory(data){
+		let sync = createSync();
+		function onAppend(res){
+			if(res.sync.id != sync.id) return;
+			socket.off("Append", onAppend);
+
+			
+			if(!res.success){
+				setErrorText(res.message);
+				return;
+			}
+
+			console.log(res);
+
+			getHistory();
+			
+		}
+
+		sync = createSync();
+
+		socket.emit("Append", { id, sync, data });
+		socket.on("Append", onAppend);
+	}
+	function clearHistory(){
+		if(!history.length){
+			return;
+		}
+		let sync = createSync();
+		function onClear(res){
+			if(res.sync.id != sync.id) return;
+			socket.off("Clear", onClear);
+
+			if(!res.success){
+				setErrorText(res.message);
+				return;
+			}
+
+			console.log(res);
+
+			getHistory();
+			
+		}
+
+		sync = createSync();
+
+		socket.emit("Clear", { id, sync });
+		socket.on("Clear", onClear);
+	}
+
+	function getHistory(){
+		let sync = createSync();
+		function onGet(res){
+			if(res.sync.id != sync.id) return;
+			socket.off("Get", onGet);
+			
+			console.log(res);
+			if(!res.success){
+				setErrorText(res.message);
+				return;
+			}
+
+			let history = res.data.history;
+
+			setHistory(history);
+			
+		}
+
+		sync = createSync();
+
+		socket.emit("Get", { id, sync });
+		socket.on("Get", onGet);
+	}
+
+	function calculate(){
+		console.log("A");
+		resetResult();
+		let sync = createSync();
+		function onCalculate(res){
+			console.log("D");
+			if(res.sync.id != sync.id) return;
+			socket.off("Calculate", onCalculate);
+			
+			console.log(res);
+			if(!res.success){
+				setErrorText(res.message);
+				return;
+			}
+
+			let out = res.data.output;
+			
+			setResult(out.output);
+			updateHistory(out);
+		}
+		function onInput(res){
+			console.log("C");
+			if(res.sync.id != sync.id) return;
+			socket.off("Input", onInput);
+
+			if(!res.success){
+				setErrorText(res.message);
+				return;
+			}
+
+			sync = createSync();
+
+			socket.emit("Calculate", { id, sync });
+			socket.on("Calculate", onCalculate);
+		}
+
+		function onClear(res){
+			console.log("B");
+			if(res.sync.id != sync.id) return;
+			socket.off("AllClear", onClear);
+
+			if(!res.success){
+				setErrorText(res.message);
+				return;
+			}
+
+			socket.emit("Input", { id, sync, data: {
+				tokens: store,
+				inTime: sync.time,
+			}});
+			socket.on("Input", onInput);
+		}
+
+		socket.emit("AllClear", { id, sync });
+		socket.on("AllClear", onClear);
+		console.log("AB");
+		console.log({socket, connected:socket.connected, id:socket.id})
+	}
+
 	function addToken(tkn){
 		resetErrorText();
 		try{
 			let input = store.at(-1);
 			let newStore = store.slice();
-			
-			if(input){
-				newStore.push(tkn);
-				newStore.push("");
-			}else{
-				if(newStore.length <= 1){
-					newStore[0] = "0";
-					newStore[1] = tkn;
+			if(result){
+				input = SpecialToken.Ans;
+				newStore = [input];
+			}
+
+			if(SpecialTokens.includes(tkn)){
+				newStore[newStore.length-1] = tkn;
+			}else if(OperationTokens.includes(tkn)){
+				if(input){
+					newStore.push(tkn);
+					newStore.push("");
 				}else{
-					newStore[newStore.length-2] = tkn;
+					if(newStore.length <= 1){
+						newStore[0] = "0";
+						newStore[1] = tkn;
+						newStore[2] = input;
+					}else{
+						newStore[newStore.length-2] = tkn;
+					}
 				}
 			}
+			
 			setStore(newStore);
 
 		}catch(err){
@@ -107,19 +249,27 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 			}
 			console.error(err);
 		}
+		resetResult();
 	}
-	function inputValue(val){
+	function inputValue(val, replace=false, parse=true){
 		resetErrorText();
 		try{
+			
 			let inp = `${val}`;
 			let input = store.at(-1);
+			let newStore = store.slice();
+			if(result){
+				input = "";
+				newStore = [input];
+			}
 
-			if(input){
+			if(input && !replace){
 				inp = `${input}${val}`;
 			}
-			inp = parseInput(inp);
+			if(parse){
+				inp = parseInput(inp);
+			}
 
-			let newStore = store.slice();
 			newStore[newStore.length-1] = inp;
 			setStore(newStore);
 
@@ -129,6 +279,7 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 			}
 			console.error(err);
 		}
+		resetResult();
 	}
 	function clearInput(){
 		resetErrorText();
@@ -142,6 +293,7 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 			}
 			console.error(err);
 		}
+		resetResult();
 	}
 	function clearStore(){
 		resetErrorText();
@@ -153,12 +305,42 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 			}
 			console.error(err);
 		}
+		resetResult();
 	}
 	function resetErrorText(){
 		setErrorText("");
 	}
+	function resetResult(){
+		setResult("");
+	}
+
+	function onStart(){
+		let sync = createSync();
+
+		function onCreate(res){
+			if(res.sync.id != sync.id) return;
+			
+			console.log(res);
+		}
+		if(socket?.connected && id){
+			socket.emit("Create", { id, sync});
+			socket.on("Create", onCreate);
+			
+			getHistory();
+		}
+	}
+
+	socket?.on("connect", onStart);
+	if(!socket?.connected){
+		socket.connect();
+	}
 
 	useEffect(()=>{
+		console.log(socket);
+
+		return () => {
+			socket.off('connect', onStart);
+		};
 	}, []);
 
 	let hex = "123456789ABCDEF0";
