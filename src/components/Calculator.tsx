@@ -2,7 +2,7 @@ import { MouseEventHandler, useEffect, useState } from "react";
 import { Socket } from 'socket.io-client';
 import * as MY from "@catsums/my";
 import { parseInput } from "../processing";
-import { Calculator } from "../storage";
+import { Calculator, HEXTokens, OperationTokens, SpecialToken, SpecialTokens, streamToTokens } from "../storage";
 import { CalcError } from "../calc_errors";
 
 export function createSync(){
@@ -13,22 +13,26 @@ export function createSync(){
 }
 
 interface IPropsWithChildren {
-	children: React.ReactNode;
+	children?: React.ReactNode;
 }
 
 
 export function Tkn({ children }: IPropsWithChildren) {
 	return (
-	  <span className="calc-token ">
+		<span className="calc-token ">
 		{children}
 	  </span>
 	)
 }
 
+interface IHistoryItemProps {
+	children?: React.ReactNode;
+	onclick?: MouseEventHandler;
+}
 
-export function HistoryItem({children}:IPropsWithChildren) {
+export function HistoryItem({children, onclick}:IHistoryItemProps) {
 	return (
-		<span className="calc-history-item">
+		<span className="calc-history-item" onClick={onclick}>
 			{children}
 		</span>
 	)
@@ -68,10 +72,12 @@ export function Btn({colspan=0, rowspan=0, onclick=(e)=>{}, children=null}:IBtnP
 
 interface ICalculatorProps {
 	socket:Socket;
+	id:string;
 }
 
-export default function CalculatorApp({socket}:ICalculatorProps) {
+export default function CalculatorApp({socket, id}:ICalculatorProps) {
 
+	const [result, setResult] = useState("");
 	const [store, setStore] = useState([""]);
 	const [history, setHistory] = useState([]);
 	const [errorText, setErrorText] = useState("");
@@ -171,25 +177,66 @@ export default function CalculatorApp({socket}:ICalculatorProps) {
 		)
 	});
 
-	let tokens = store.map((tkn, i)=>{
-		if(tkn && i < store.length-1){
+	let _store = store.slice();
+	if(!result){
+		_store.pop();
+	}else{
+		_store.push("=");
+	}
+
+	let tokens = _store.map((tkn, i)=>{
+		if(tkn){
+			tkn = tkn.replace(SpecialToken.Ans, "Ans");
 			return (
 				<Tkn key={i}>{tkn}</Tkn>
 			)
 		}
 	})
+	if(!tokens.length){
+		tokens.push(<Tkn key={0}> </Tkn>);
+	}
+
+	let histories = history.map((hist, i)=>{
+		if(hist){
+			let input = (hist.input as string).replace(SpecialToken.Ans, "Ans");
+			let output = hist.output;
+			return (
+				<HistoryItem key={i} onclick={(e)=>{
+					e.preventDefault();
+					e.stopPropagation();
+
+					// let tkns = streamToTokens(input);
+					
+					// setStore(tkns);
+					inputValue(output, true);
+				}}>
+					{input} = {output}
+				</HistoryItem>
+			)
+		}
+	})
+
+	let display = result || store.at(-1) || "0";
+	display = display.replace(SpecialToken.Ans, "Ans");
 
 	return (
-	  <div className="grid grid-cols-4 gap-2">
-		<nav className="col-span-1 rounded bg-c5-100 grid grid-rows-12">
+	  <div className="calc-container grid grid-cols-4 gap-2">
+		<nav className="col-span-1 rounded bg-c5-100 grid grid-rows-12 overflow-hidden">
 		  <div className="row-span-1 bg-c5-200 pl-4 m-0 flex justify-start items-center">
 			<span className="h-fit">History</span>
 		  </div>
-		  <div className="calc-history row-span-9 bg-c5-100 p-3">
-			<HistoryItem>12A + 1 = 12B</HistoryItem>
-			<HistoryItem>1C - 3 = 19</HistoryItem>
+		  <div className="calc-history row-span-9 bg-c5-100 p-3 overflow-auto overflow-x-hidden">
+			{histories}
 		  </div>
-		  <div className="calc-history-ctrl row-span-2 bg-c5-200">
+		  <div className="calc-history-ctrl row-span-2 bg-c5-200 flex justify-center items-center p-1 gap-3">
+			<Btn onclick={(e)=>{
+				e.stopPropagation();
+				clearHistory();
+			}}>Clear</Btn>
+			<Btn onclick={(e)=>{
+				e.stopPropagation();
+				addToken(SpecialToken.Ans);
+			}}>Ans</Btn>
 		  </div>
 		</nav>
 		<main className="col-span-3">
@@ -200,7 +247,7 @@ export default function CalculatorApp({socket}:ICalculatorProps) {
 			  </div>
 			  <div className="calc-input row-span-6 p-2 border rounded border-c5-300 flex justify-end items-center">
 				<div className="calc-input-text text-4xl truncate">
-					{store.at(-1) || "0"}
+					{display}
 				</div>
 			  </div>
 			</div>
@@ -236,7 +283,10 @@ export default function CalculatorApp({socket}:ICalculatorProps) {
 					e.stopPropagation();
 					addToken("/");
 				}}>÷</Btn>
-				<Btn colspan={2} onclick={()=>{}}>=</Btn>
+				<Btn colspan={2} onclick={(e)=>{
+					e.stopPropagation();
+					calculate();
+				}}>=</Btn>
 			  </div>
 			  
 			</div>
