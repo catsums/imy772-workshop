@@ -10,14 +10,14 @@ import { Btn, createSync } from './components/Calculator';
 // const CalculatorApp = lazy(() => import('./components/Calculator'))
 import CalculatorApp from './components/Calculator';
 
-const PORT = 5173;
-const URL = `http://localhost:${PORT}`;
+// const PORT = 5173;
+// const URL = `http://localhost:${PORT}`;
 
 export default function App() {
 
 	const [id, setID] = useState("");
 	const [openDialog, setOpenDialog] = useState(false);
-	const socket = io(URL);
+	const socket = io();
 	
 	function onConnect() {
 		console.log(`Socket connected! ${socket.id}`);
