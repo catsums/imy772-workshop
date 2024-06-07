@@ -11,7 +11,8 @@
 		"build:server": "vite build --ssr src/entry-server.tsx --outDir dist/server",
 		"preview": "cross-env NODE_ENV=production bun server.ts",
 		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-		"test": "bun test"
+		"test": "bun test",
+		"run": "bun run preview"
 	},
 	"dependencies": {
 		"compression": "^1.7.4",
