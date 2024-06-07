@@ -41,11 +41,10 @@ export function HistoryItem({children, onclick}:IHistoryItemProps) {
 interface IBtnProps extends IPropsWithChildren {
 	colspan?: number;
 	rowspan?: number;
-	id?: string;
 	onclick?: MouseEventHandler;
 }
 
-export function Btn({colspan=0, rowspan=0, id="", onclick=(e)=>{}, children=null}:IBtnProps) {
+export function Btn({colspan=0, rowspan=0, onclick=(e)=>{}, children=null}:IBtnProps) {
 
   let colspans = [
 	'col-auto', 'col-span-1', 'col-span-2',
@@ -63,7 +62,7 @@ export function Btn({colspan=0, rowspan=0, id="", onclick=(e)=>{}, children=null
   ]
 
   return (
-    <button className={`calc-btn pushy z-[1]  ${colspans[colspan]} ${rowspans[rowspan]}`} onClick={onclick} id={id}>
+    <button className={`calc-btn pushy z-[1]  ${colspans[colspan]} ${rowspans[rowspan]}`} onClick={onclick}>
       <div className="pushy-inner flex justify-center items-center">
         {children}
       </div>
@@ -157,17 +156,19 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 	}
 
 	function calculate(){
+		console.log("A");
 		resetResult();
 		let sync = createSync();
 		function onCalculate(res){
+			console.log("D");
 			if(res.sync.id != sync.id) return;
 			socket.off("Calculate", onCalculate);
 			
+			console.log(res);
 			if(!res.success){
 				setErrorText(res.message);
 				return;
 			}
-			console.log(res);
 
 			let out = res.data.output;
 			
@@ -175,6 +176,7 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 			updateHistory(out);
 		}
 		function onInput(res){
+			console.log("C");
 			if(res.sync.id != sync.id) return;
 			socket.off("Input", onInput);
 
@@ -190,6 +192,7 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 		}
 
 		function onClear(res){
+			console.log("B");
 			if(res.sync.id != sync.id) return;
 			socket.off("AllClear", onClear);
 
@@ -207,6 +210,8 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 
 		socket.emit("AllClear", { id, sync });
 		socket.on("AllClear", onClear);
+		console.log("AB");
+		console.log({socket, connected:socket.connected, id:socket.id})
 	}
 
 	function addToken(tkn){
@@ -331,6 +336,8 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 	}
 
 	useEffect(()=>{
+		console.log(socket);
+
 		return () => {
 			socket.off('connect', onStart);
 		};
@@ -346,7 +353,6 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 					inputValue(char);
 				}}
 				key={char}
-				id={char}
 			>
 				{char}
 			</Btn>
@@ -408,11 +414,11 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 			<Btn onclick={(e)=>{
 				e.stopPropagation();
 				clearHistory();
-			}} id="Clear">Clear</Btn>
+			}}>Clear</Btn>
 			<Btn onclick={(e)=>{
 				e.stopPropagation();
 				addToken(SpecialToken.Ans);
-			}} id="Ans">Ans</Btn>
+			}}>Ans</Btn>
 		  </div>
 		</nav>
 		<main className="col-span-3">
@@ -438,31 +444,31 @@ export default function CalculatorApp({socket, id}:ICalculatorProps) {
 				<Btn onclick={(e)=>{
 					e.stopPropagation();
 					clearInput();
-				}} id="CE">CE</Btn> 
+				}}>CE</Btn> 
 				<Btn onclick={(e)=>{
 					e.stopPropagation();
 					clearStore();
-				}} id="AC">AC</Btn>
+				}}>AC</Btn>
 				<Btn onclick={(e)=>{
 					e.stopPropagation();
 					addToken("+");
-				}} id="+">+</Btn> 
+				}}>+</Btn> 
 				<Btn onclick={(e)=>{
 					e.stopPropagation();
 					addToken("-");
-				}} id="-">-</Btn>
+				}}>-</Btn>
 				<Btn onclick={(e)=>{
 					e.stopPropagation();
 					addToken("*");
-				}} id="*">×</Btn> 
+				}}>×</Btn> 
 				<Btn onclick={(e)=>{
 					e.stopPropagation();
 					addToken("/");
-				}} id="/">÷</Btn>
+				}}>÷</Btn>
 				<Btn colspan={2} onclick={(e)=>{
 					e.stopPropagation();
 					calculate();
-				}} id="=">=</Btn>
+				}}>=</Btn>
 			  </div>
 			  
 			</div>
