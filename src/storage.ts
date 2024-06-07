@@ -9,7 +9,7 @@ export const HEXTokens = "0123456789ABCDEF".split("");
 export const SpecialToken = {
 	Ans: "@",
 }
-export const SpecialTokens = Object.values(SpecialToken);;
+export const SpecialTokens = Object.values(SpecialToken);
 
 export const AllTokens = [].concat(OperationTokens, HEXTokens, SpecialTokens);
 
@@ -124,10 +124,36 @@ export class Calculator {
 
 }
 
-function isOperatorToken(token: string) {
+export function streamToTokens(stream: InputStream){
+	let chars = stream.split("");
+	let tkn = "";
+	let tkns:StoreType = [];
+	for(let char of chars){
+		if(HEXTokens.includes(char)){
+			tkn += char;
+		}else if(OperationTokens.includes(char)){
+			tkns.push(tkn);
+			tkns.push(char);
+			tkn = "";
+		}else if(SpecialTokens.includes(char)){
+			switch(char){
+				case SpecialToken.Ans:
+					tkns.push(tkn);
+					tkns.push(char);
+					tkn = "";
+					break;
+			}
+		}
+	}
+	tkns.push(tkn);
+
+	return tkns;
+}
+
+export function isOperatorToken(token: string) {
 	return OperationTokens.includes(token);
 }
-function isHexToken(token: string) {
+export function isHexToken(token: string) {
 	for(let char of token){
 		if(!HEXTokens.includes(char)){
 			return false;
@@ -209,7 +235,7 @@ export function processStore(store:string[], history:string[] = []){
 			let curr = init[i] || null;
 			let next = init[i+1] || null;
 	
-			if(isOperatorToken(curr.toString()) && ops.includes(curr.toString())){
+			if(isOperatorToken(curr?.toString()) && ops.includes(curr?.toString())){
 				let a, b;
 	
 				a = prev as number;
