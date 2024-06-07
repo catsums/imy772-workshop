@@ -124,6 +124,32 @@ export class Calculator {
 
 }
 
+export function streamToTokens(stream: InputStream){
+	let chars = stream.split("");
+	let tkn = "";
+	let tkns:StoreType = [];
+	for(let char of chars){
+		if(HEXTokens.includes(char)){
+			tkn += char;
+		}else if(OperationTokens.includes(char)){
+			tkns.push(tkn);
+			tkns.push(char);
+			tkn = "";
+		}else if(SpecialTokens.includes(char)){
+			switch(char){
+				case SpecialToken.Ans:
+					tkns.push(tkn);
+					tkns.push(char);
+					tkn = "";
+					break;
+			}
+		}
+	}
+	tkns.push(tkn);
+
+	return tkns;
+}
+
 export function isOperatorToken(token: string) {
 	return OperationTokens.includes(token);
 }
