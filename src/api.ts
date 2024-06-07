@@ -159,6 +159,13 @@ ioServer.on("connection", (socket) => {
 
 			let res = processStore(store, history);
 
+			store = store.map((tkn)=>{
+				if(tkn == SpecialToken.Ans){
+					return history.at(-1) || "0";
+				}
+				return tkn;
+			})
+
 			// console.log({res})
 
 			let output:ICalculatorOutput = {
@@ -364,12 +371,12 @@ ioServer.on("connection", (socket) => {
 		}
 
 		let history = await retrieveHistory(id);
-		let res = (history?.history?.length ? true : false);
+		let res = (history?.history ? true : false);
 
 		socket.emit("Get", {
 			success: res,
 			message: (res ? `Got History` : `Failed to get history`),
-			data: { id:history.id, history: history.history },
+			data: res ? { id:history?.id, history: history?.history } : null,
 			sync,
 		})
 		return;
