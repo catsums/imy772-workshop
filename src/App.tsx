@@ -1,8 +1,8 @@
 import { Suspense, lazy, useState, useEffect } from 'react'
 import { io, Socket } from "socket.io-client"
 
-import './css/App.scss'
-import "./tailwind.css";
+import './css/App.css'
+import "./css/tailwind.css";
 import { randomID } from '@catsums/my';
 import { Btn, createSync } from './components/Calculator';
 

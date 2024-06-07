@@ -46,15 +46,20 @@ describe("Access API functions", () => {
 		test("Test open and connect socket", async () => {
 			
 			socket = io(testURL);
+			console.log("A");
 			
 			let res = await new Promise((resolve, reject)=>{
+				console.log("B");
 				socket.on("connect", ()=>{
+					console.log("C");
 					resolve(true);
 				});
 			})
+			console.log("D");
 			expect(socket.connected).toBe(true);
 			expect(clients.get(socket.id).id).toBe(socket.id);
 			expect(clients.size).toBe(1);
+			console.log("E");
 		});
 	})
 

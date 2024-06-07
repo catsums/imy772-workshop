@@ -1,17 +1,18 @@
-/// <reference lib="dom" />
-
 import "../happydom"
 
 import {render, screen, fireEvent} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-// import '@testing-library/jest-dom'
 
 import App from "./App";
 import { HEXTokens, OperationTokens } from './storage';
 
-import {app, changePort, clients, server, ioServer, DBdelete, DBreset, createSync} from "./api";
 import { randomID } from '@catsums/my';
 import { closeDB } from "./db";
+
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
+import child_process from 'child_process';
+const exec = util.promisify(child_process.exec);
 
 const {spyOn} = jest;
 
@@ -21,8 +22,6 @@ let spyInstances = [];
 function getLocalStorage(){
 	return {...localStorage};
 }
-
-
 
 function simulateButtonPresses(presses:string[], btnmap:{[key:string]:HTMLButtonElement}){
 	for(let press of presses){
@@ -40,11 +39,11 @@ function simulateButtonPresses(presses:string[], btnmap:{[key:string]:HTMLButton
 describe("Testing App", ()=>{
 	let calcElem:HTMLElement;
 	beforeEach(()=>{
-		let {container} = render(<App/>);
-		appElem = container;
+		let cont = render(<App/>);
+		appElem = cont.container;
 		calcElem = appElem.querySelector(".calculator");
+		
 	});
-
 	describe("Test UI at initial state", ()=>{
 		test("Test initial display", ()=>{
 			

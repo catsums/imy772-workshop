@@ -1,8 +1,9 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  setupFilesAfterEnv: [
-	'./setupTests.js',
-  ],
+//   transform: {
+// 	"^.+\\.css$": "jest-transform-css",
+//   },
+//   testEnvironment: 'jsdom',
 };

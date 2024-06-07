@@ -1,0 +1,109 @@
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap");
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+#root, #__next {
+  isolation: isolate;
+}
+
+.font-orbitron {
+  font-family: "Orbitron", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+#root {
+  font-family: "Orbitron", "Calibri", sans-serif;
+  --c1: #0a090d;
+  --c2: #c589e8;
+  --c3: #85e2ff;
+  --c4: #004e89;
+  --c5: #5b35f2;
+}
+
+body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #484064;
+}
+
+::-webkit-scrollbar {
+  height: 0.5em;
+  box-sizing: content-box;
+}
+
+::-webkit-scrollbar-track {
+  box-sizing: content-box;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #d5d5ff, #9188fd);
+  border-radius: 8pt;
+  transition: all 0.5s;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #d5d5ff;
+}
+
+.calculator {
+  --shadow-color: #b6b3ff;
+  box-shadow: 0 1em var(--shadow-color);
+}
+
+.pushy {
+  --shade-color: #d9abff7c;
+  --shadow-color: #bdb7ff;
+  --light-color: #f5ebfcaa;
+  box-shadow: 0 0.4em var(--shadow-color);
+  box-sizing: border-box;
+  transition: all 0.2s;
+  padding: 0px;
+  user-select: none;
+  border: thin solid var(--shade-color);
+}
+.pushy .pushy-inner {
+  border-radius: inherit;
+  box-shadow: inset 0 -1.25em var(--shade-color), inset 0 0.1em var(--light-color);
+  width: 100%;
+  height: 100%;
+}
+.pushy:active {
+  border: thin solid var(--shadow-color);
+  box-shadow: initial;
+  translate: 0 0.4em;
+  padding: 0;
+}
+.pushy:active .pushy-inner {
+  box-shadow: inset 0 -1.25em var(--shade-color);
+}
+
+/*# sourceMappingURL=App.css.map */
